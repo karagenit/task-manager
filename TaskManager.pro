@@ -4,7 +4,9 @@ QT = core gui
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 SOURCES += \
     main.cpp \
-    systemtab.cpp
+    systemtab.cpp \
+    resourcestab.cpp
 
 HEADERS += \
-    systemtab.h
+    systemtab.h \
+    resourcestab.h
