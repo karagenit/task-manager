@@ -3,6 +3,9 @@
 
 #include <QWidget>
 #include <QTimer>
+#include <QtCharts>
+
+using namespace QtCharts;
 
 class ResourcesTab : public QWidget
 {
@@ -17,6 +20,9 @@ public slots:
 
 private:
     QTimer *timer;
+    QChart *chart;
+    QChartView *chartView;
+    QLineSeries *series;
 };
 
 #endif // RESOURCESTAB_H
