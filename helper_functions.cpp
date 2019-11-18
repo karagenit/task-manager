@@ -15,16 +15,16 @@ string rtrim(const string str) {
 }
 
 string ltrim(const string str) {
-  auto index = 0;
+  unsigned index = 0;
   if (str.size() == 0) {
     return string(str);
   }
 
   while ((index < str.size()) && (isspace(str[index]))) {
-    index--;
+    index++;
   }
 
-  return str.substr(index - 1, str.size());
+  return str.substr(index, str.size());
 }
 
 string trim(const string str) {
