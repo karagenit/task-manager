@@ -1,18 +1,20 @@
 #ifndef FILE_SYSTEM_H_
 #define FILE_SYSTEM_H_
 
+#include <string>
+
 class FileSystem {
   public:
     FileSystem();
     ~FileSystem();
   private:
-    string device_;
-    string directory_;
-    string type_;
-    string total_;
-    string free_;
-    string available_;
-    string used_;
+    std::string device_;
+    std::string directory_;
+    std::string type_;
+    std::string total_;
+    std::string free_;
+    std::string available_;
+    std::string used_;
 };
 
 
