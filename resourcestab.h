@@ -7,6 +7,8 @@
 
 #include <unistd.h>
 
+#define CPU_GRAPH_RANGE (30)
+
 using namespace QtCharts;
 
 class ResourcesTab : public QWidget

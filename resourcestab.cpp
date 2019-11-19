@@ -15,6 +15,7 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     chart->legend()->hide();
     chart->addSeries(series);
     chart->createDefaultAxes();
+    chart->axisX()->hide();
     chart->setTitle("CPU Usage");
 
     chartView = new QChartView(chart);
@@ -36,7 +37,7 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
 
 void ResourcesTab::updateGraphs() {
     series->append(timeCount, get_used_cpu());
-    chart->axisX()->setRange(0, timeCount);
+    chart->axisX()->setRange(timeCount - CPU_GRAPH_RANGE, timeCount);
     chartView->repaint();
     timeCount++;
 }
