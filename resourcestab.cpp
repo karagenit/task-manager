@@ -92,6 +92,20 @@ int ResourcesTab::get_used_swap() {
     return stoi(popen_string("free -m | grep 'Swap:' | awk '{print $3}'"));
 }
 
+int ResourcesTab::get_network_transmit() {
+    int transBytes = stoi(popen_string("tail -n +3 /proc/net/dev | awk '{SUM += $10} END {print SUM}'"));
+    int bytesDiff = transBytes - lastTransmitCount;
+    lastTransmitCount = transBytes;
+    return bytesDiff;
+}
+
+int ResourcesTab::get_network_receive() {
+    int recvBytes = stoi(popen_string("tail -n +3 /proc/net/dev | awk '{SUM += $2} END {print SUM}'"));
+    int bytesDiff = recvBytes - lastReceiveCount;
+    lastReceiveCount = recvBytes;
+    return bytesDiff;
+}
+
 std::string ResourcesTab::popen_string(std::string cmd) {
   std::string answer;
   FILE *fp = popen(cmd.c_str(), "r");

@@ -21,6 +21,8 @@ public:
     int get_used_memory();
     int get_total_memory();
     int get_used_swap();
+    int get_network_transmit();
+    int get_network_receive();
     std::string popen_string(std::string cmd);
 
 signals:
@@ -43,6 +45,8 @@ private:
     int timeCount;
     int lastIdleCount;
     int lastUsedCount;
+    int lastTransmitCount;
+    int lastReceiveCount;
 };
 
 #endif // RESOURCESTAB_H
