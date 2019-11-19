@@ -4,6 +4,12 @@
 
 namespace fs = std::filesystem;
 
-FileSystem::FileSystem() {
-
+FileSystemEntry::FileSystemEntry(string) {
+  device_ = "";
+  directory_ = "";
+  type_ = "";
+  total_ = "";
+  free_ = "";
+  available_ = "";
+  used_ = "";
 }

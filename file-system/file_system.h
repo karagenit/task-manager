@@ -3,10 +3,10 @@
 
 #include <string>
 
-class FileSystem {
+class FileSystemEntry {
   public:
-    FileSystem();
-    ~FileSystem();
+    FileSystemEntry();
+    ~FileSystemEntry();
   private:
     std::string device_;
     std::string directory_;
@@ -17,5 +17,6 @@ class FileSystem {
     std::string used_;
 };
 
+vector<FileSystemEntry> read_file_system_entries();
 
 #endif
