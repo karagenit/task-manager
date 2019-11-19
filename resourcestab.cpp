@@ -8,12 +8,8 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     QObject::connect(timer, SIGNAL(timeout()), this, SLOT(updateGraphs()));
     timer->start(1000);
 
+    timeCount = 0;
     series = new QLineSeries();
-    series->append(1,2);
-    series->append(2,3);
-    series->append(4,8);
-    series->append(5,1);
-    series->append(3,4);
 
     chart = new QChart();
     chart->legend()->hide();
@@ -27,8 +23,31 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     QVBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(chartView);
     setLayout(layout);
+
+    chart->axisY()->setRange(0, 100);
 }
 
 void ResourcesTab::updateGraphs() {
-    printf("Updating graphs...\n");
+    series->append(timeCount, 100.0 - get_idle_cpu());
+    chart->axisX()->setRange(0, timeCount);
+    chartView->repaint();
+    timeCount++;
+}
+
+double ResourcesTab::get_idle_cpu() {
+    std::string idle = popen_string("mpstat | tail -n 1 | awk '{print $13}'");
+    return stod(idle, nullptr);
+}
+
+std::string ResourcesTab::popen_string(std::string cmd) {
+  std::string answer;
+  FILE *fp = popen(cmd.c_str(), "r");
+  char buffer[1024];
+  while (!feof(fp)) {
+    if (fgets(buffer, 1024, fp)) {
+      answer.append(buffer);
+    }
+  }
+  pclose(fp);
+  return answer;
 }
