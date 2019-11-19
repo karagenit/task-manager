@@ -33,10 +33,13 @@ public slots:
 
 private:
     QTimer *timer;
+    int timeCount;
 
     QChart *cpuChart;
     QChartView *cpuChartView;
     QLineSeries *cpuSeries;
+    int lastIdleCount;
+    int lastUsedCount;
 
     QChart *memoryChart;
     QChartView *memoryChartView;
@@ -47,10 +50,6 @@ private:
     QChartView *networkChartView;
     QLineSeries *networkTransmitSeries;
     QLineSeries *networkReceiveSeries;
-
-    int timeCount;
-    int lastIdleCount;
-    int lastUsedCount;
     int lastTransmitCount;
     int lastReceiveCount;
 };

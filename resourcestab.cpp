@@ -7,7 +7,6 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     timer = new QTimer(this);
     QObject::connect(timer, SIGNAL(timeout()), this, SLOT(updateGraphs()));
     timer->start(1000);
-
     timeCount = 0;
 
     /* SETUP CPU CHART */
@@ -21,6 +20,7 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     cpuChart->setTitle("CPU Usage");
     cpuChartView = new QChartView(cpuChart);
     cpuChartView->setRenderHint(QPainter::Antialiasing);
+    cpuChart->axisY()->setRange(0, 100);
 
     /* SETUP MEMORY CHART */
 
@@ -61,10 +61,6 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     layout->addWidget(memoryChartView);
     layout->addWidget(networkChartView);
     setLayout(layout);
-
-    // For some reason, it segfaults if we try to set this
-    // when we set up the other chart elements...
-    cpuChart->axisY()->setRange(0, 100);
 
     lastIdleCount = 0;
     lastUsedCount = 0;
