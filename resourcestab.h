@@ -20,6 +20,7 @@ public:
     double get_used_cpu();
     int get_used_memory();
     int get_total_memory();
+    int get_used_swap();
     std::string popen_string(std::string cmd);
 
 signals:
@@ -35,6 +36,7 @@ private:
     QChart *memoryChart;
     QChartView *memoryChartView;
     QLineSeries *memorySeries;
+    QLineSeries *swapSeries;
     QChart *networkChart;
     QChartView *networkChartView;
     QLineSeries *networkSeries;

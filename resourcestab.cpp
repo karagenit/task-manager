@@ -24,11 +24,14 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
 
     /* SETUP MEMORY CHART */
     memorySeries = new QLineSeries;
+    swapSeries = new QLineSeries;
     memoryChart = new QChart;
     memoryChart->legend()->hide();
     memoryChart->addSeries(memorySeries);
+    memoryChart->addSeries(swapSeries);
     memoryChart->createDefaultAxes();
     memoryChart->axisX()->hide();
+    // TODO: what if swap > ram?
     memoryChart->axisY()->setRange(0, get_total_memory());
     memoryChart->setTitle("Memory Usage");
     memoryChartView = new QChartView(memoryChart);
@@ -57,6 +60,7 @@ void ResourcesTab::updateGraphs() {
     cpuChartView->repaint();
 
     memorySeries->append(timeCount, get_used_memory());
+    swapSeries->append(timeCount, get_used_swap());
     memoryChart->axisX()->setRange(timeCount - MEM_GRAPH_RANGE, timeCount);
     memoryChartView->repaint();
 
@@ -82,6 +86,10 @@ int ResourcesTab::get_used_memory() {
 
 int ResourcesTab::get_total_memory() {
     return stoi(popen_string("free -m | grep 'Mem:' | awk '{print $2}'"));
+}
+
+int ResourcesTab::get_used_swap() {
+    return stoi(popen_string("free -m | grep 'Swap:' | awk '{print $3}'"));
 }
 
 std::string ResourcesTab::popen_string(std::string cmd) {
