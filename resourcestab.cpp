@@ -28,26 +28,31 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     // when we set up the other chart elements...
     chart->axisY()->setRange(0, 100);
 
-    timeScale = sysconf(_SC_CLK_TCK);
     lastIdleCount = 0;
+    lastUsedCount = 0;
     // call once to properly set lastIdleCount
-    get_idle_cpu();
+    get_used_cpu();
 }
 
 void ResourcesTab::updateGraphs() {
-    series->append(timeCount, 100.0 - get_idle_cpu());
+    series->append(timeCount, get_used_cpu());
     chart->axisX()->setRange(0, timeCount);
     chartView->repaint();
     timeCount++;
 }
 
-double ResourcesTab::get_idle_cpu() {
+double ResourcesTab::get_used_cpu() {
     std::string idle = popen_string("cat /proc/stat | head -n 1 | awk '{print $5}'");
+    std::string used = popen_string("cat /proc/stat | head -n 1 | awk '{print ($2+$4)}'");
     int idleCount = stoi(idle, nullptr);
-    int idleJiffies = idleCount - lastIdleCount;
-    double idlePercent = idleJiffies / timeScale / 100.0 / 4.0;
-    qDebug() << idlePercent;
-    return idlePercent;
+    int usedCount = stoi(used, nullptr);
+    int idleTicks = idleCount - lastIdleCount;
+    int usedTicks = usedCount - lastUsedCount;
+    double usedPercent = 100.0 * usedTicks / (usedTicks + idleTicks);
+    qDebug() << usedPercent;
+    lastIdleCount = idleCount;
+    lastUsedCount = usedCount;
+    return usedPercent;
 }
 
 std::string ResourcesTab::popen_string(std::string cmd) {

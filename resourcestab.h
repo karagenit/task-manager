@@ -14,7 +14,7 @@ class ResourcesTab : public QWidget
     Q_OBJECT
 public:
     explicit ResourcesTab(QWidget *parent = nullptr);
-    double get_idle_cpu();
+    double get_used_cpu();
     std::string popen_string(std::string cmd);
 
 signals:
@@ -28,8 +28,8 @@ private:
     QChartView *chartView;
     QLineSeries *series;
     int timeCount;
-    long timeScale;
     int lastIdleCount;
+    int lastUsedCount;
 };
 
 #endif // RESOURCESTAB_H
