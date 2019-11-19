@@ -9,6 +9,7 @@
 
 #define CPU_GRAPH_RANGE (30)
 #define MEM_GRAPH_RANGE (30)
+#define NET_GRAPH_RANGE (30)
 
 using namespace QtCharts;
 
@@ -32,16 +33,21 @@ public slots:
 
 private:
     QTimer *timer;
+
     QChart *cpuChart;
     QChartView *cpuChartView;
     QLineSeries *cpuSeries;
+
     QChart *memoryChart;
     QChartView *memoryChartView;
     QLineSeries *memorySeries;
     QLineSeries *swapSeries;
+
     QChart *networkChart;
     QChartView *networkChartView;
-    QLineSeries *networkSeries;
+    QLineSeries *networkTransmitSeries;
+    QLineSeries *networkReceiveSeries;
+
     int timeCount;
     int lastIdleCount;
     int lastUsedCount;

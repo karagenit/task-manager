@@ -23,6 +23,7 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     cpuChartView->setRenderHint(QPainter::Antialiasing);
 
     /* SETUP MEMORY CHART */
+
     memorySeries = new QLineSeries;
     swapSeries = new QLineSeries;
     memoryChart = new QChart;
@@ -37,11 +38,28 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     memoryChartView = new QChartView(memoryChart);
     memoryChartView->setRenderHint(QPainter::Antialiasing);
 
+    /* SETUP NETWORK CHART */
+
+    networkTransmitSeries = new QLineSeries;
+    networkReceiveSeries = new QLineSeries;
+    networkChart = new QChart;
+    networkChart->legend()->hide();
+    networkChart->addSeries(networkReceiveSeries);
+    networkChart->addSeries(networkTransmitSeries);
+    networkChart->createDefaultAxes();
+    networkChart->axisX()->hide();
+    // TODO: big enough? autoscale?
+    networkChart->axisY()->setRange(0, 100000);
+    networkChart->setTitle("Network Usage");
+    networkChartView = new QChartView(networkChart);
+    networkChartView->setRenderHint(QPainter::Antialiasing);
+
     /* SETUP PAGE LAYOUT */
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(cpuChartView);
     layout->addWidget(memoryChartView);
+    layout->addWidget(networkChartView);
     setLayout(layout);
 
     // For some reason, it segfaults if we try to set this
@@ -50,8 +68,14 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
 
     lastIdleCount = 0;
     lastUsedCount = 0;
-    // call once to properly set lastIdleCount
+    lastReceiveCount = 0;
+    lastTransmitCount = 0;
+
+    // We call these once so the various lastCounts
+    // are set properly.
     get_used_cpu();
+    get_network_receive();
+    get_network_transmit();
 }
 
 void ResourcesTab::updateGraphs() {
@@ -63,6 +87,11 @@ void ResourcesTab::updateGraphs() {
     swapSeries->append(timeCount, get_used_swap());
     memoryChart->axisX()->setRange(timeCount - MEM_GRAPH_RANGE, timeCount);
     memoryChartView->repaint();
+
+    networkTransmitSeries->append(timeCount, get_network_transmit());
+    networkReceiveSeries->append(timeCount, get_network_receive());
+    networkChart->axisX()->setRange(timeCount - NET_GRAPH_RANGE, timeCount);
+    networkChartView->repaint();
 
     timeCount++;
 }
