@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #define CPU_GRAPH_RANGE (30)
+#define MEM_GRAPH_RANGE (30)
 
 using namespace QtCharts;
 
@@ -17,6 +18,8 @@ class ResourcesTab : public QWidget
 public:
     explicit ResourcesTab(QWidget *parent = nullptr);
     double get_used_cpu();
+    int get_used_memory();
+    int get_total_memory();
     std::string popen_string(std::string cmd);
 
 signals:

@@ -29,6 +29,7 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     memoryChart->addSeries(memorySeries);
     memoryChart->createDefaultAxes();
     memoryChart->axisX()->hide();
+    memoryChart->axisY()->setRange(0, get_total_memory());
     memoryChart->setTitle("Memory Usage");
     memoryChartView = new QChartView(memoryChart);
     memoryChartView->setRenderHint(QPainter::Antialiasing);
@@ -54,6 +55,11 @@ void ResourcesTab::updateGraphs() {
     cpuSeries->append(timeCount, get_used_cpu());
     cpuChart->axisX()->setRange(timeCount - CPU_GRAPH_RANGE, timeCount);
     cpuChartView->repaint();
+
+    memorySeries->append(timeCount, get_used_memory());
+    memoryChart->axisX()->setRange(timeCount - MEM_GRAPH_RANGE, timeCount);
+    memoryChartView->repaint();
+
     timeCount++;
 }
 
@@ -68,6 +74,14 @@ double ResourcesTab::get_used_cpu() {
     lastIdleCount = idleCount;
     lastUsedCount = usedCount;
     return usedPercent;
+}
+
+int ResourcesTab::get_used_memory() {
+    return stoi(popen_string("free -m | grep 'Mem:' | awk '{print $3}'"));
+}
+
+int ResourcesTab::get_total_memory() {
+    return stoi(popen_string("free -m | grep 'Mem:' | awk '{print $2}'"));
 }
 
 std::string ResourcesTab::popen_string(std::string cmd) {
