@@ -24,7 +24,14 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     layout->addWidget(chartView);
     setLayout(layout);
 
+    // For some reason, it segfaults if we try to set this
+    // when we set up the other chart elements...
     chart->axisY()->setRange(0, 100);
+
+    timeScale = sysconf(_SC_CLK_TCK);
+    lastIdleCount = 0;
+    // call once to properly set lastIdleCount
+    get_idle_cpu();
 }
 
 void ResourcesTab::updateGraphs() {
@@ -35,8 +42,12 @@ void ResourcesTab::updateGraphs() {
 }
 
 double ResourcesTab::get_idle_cpu() {
-    std::string idle = popen_string("mpstat | tail -n 1 | awk '{print $13}'");
-    return stod(idle, nullptr);
+    std::string idle = popen_string("cat /proc/stat | head -n 1 | awk '{print $5}'");
+    int idleCount = stoi(idle, nullptr);
+    int idleJiffies = idleCount - lastIdleCount;
+    double idlePercent = idleJiffies / timeScale / 100.0 / 4.0;
+    qDebug() << idlePercent;
+    return idlePercent;
 }
 
 std::string ResourcesTab::popen_string(std::string cmd) {

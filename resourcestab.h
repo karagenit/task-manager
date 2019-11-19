@@ -5,6 +5,8 @@
 #include <QTimer>
 #include <QtCharts>
 
+#include <unistd.h>
+
 using namespace QtCharts;
 
 class ResourcesTab : public QWidget
@@ -26,6 +28,8 @@ private:
     QChartView *chartView;
     QLineSeries *series;
     int timeCount;
+    long timeScale;
+    int lastIdleCount;
 };
 
 #endif // RESOURCESTAB_H
