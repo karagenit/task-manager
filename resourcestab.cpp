@@ -22,10 +22,22 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     cpuChartView = new QChartView(cpuChart);
     cpuChartView->setRenderHint(QPainter::Antialiasing);
 
+    /* SETUP MEMORY CHART */
+    memorySeries = new QLineSeries;
+    memoryChart = new QChart;
+    memoryChart->legend()->hide();
+    memoryChart->addSeries(memorySeries);
+    memoryChart->createDefaultAxes();
+    memoryChart->axisX()->hide();
+    memoryChart->setTitle("Memory Usage");
+    memoryChartView = new QChartView(memoryChart);
+    memoryChartView->setRenderHint(QPainter::Antialiasing);
+
     /* SETUP PAGE LAYOUT */
 
     QVBoxLayout *layout = new QVBoxLayout;
     layout->addWidget(cpuChartView);
+    layout->addWidget(memoryChartView);
     setLayout(layout);
 
     // For some reason, it segfaults if we try to set this
@@ -53,7 +65,6 @@ double ResourcesTab::get_used_cpu() {
     int idleTicks = idleCount - lastIdleCount;
     int usedTicks = usedCount - lastUsedCount;
     double usedPercent = 100.0 * usedTicks / (usedTicks + idleTicks);
-    qDebug() << usedPercent;
     lastIdleCount = idleCount;
     lastUsedCount = usedCount;
     return usedPercent;
