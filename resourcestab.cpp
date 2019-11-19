@@ -9,25 +9,28 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     timer->start(1000);
 
     timeCount = 0;
-    series = new QLineSeries();
 
-    chart = new QChart();
-    chart->legend()->hide();
-    chart->addSeries(series);
-    chart->createDefaultAxes();
-    chart->axisX()->hide();
-    chart->setTitle("CPU Usage");
+    /* SETUP CPU CHART */
 
-    chartView = new QChartView(chart);
-    chartView->setRenderHint(QPainter::Antialiasing);
+    cpuSeries = new QLineSeries();
+    cpuChart = new QChart();
+    cpuChart->legend()->hide();
+    cpuChart->addSeries(cpuSeries);
+    cpuChart->createDefaultAxes();
+    cpuChart->axisX()->hide();
+    cpuChart->setTitle("CPU Usage");
+    cpuChartView = new QChartView(cpuChart);
+    cpuChartView->setRenderHint(QPainter::Antialiasing);
+
+    /* SETUP PAGE LAYOUT */
 
     QVBoxLayout *layout = new QVBoxLayout;
-    layout->addWidget(chartView);
+    layout->addWidget(cpuChartView);
     setLayout(layout);
 
     // For some reason, it segfaults if we try to set this
     // when we set up the other chart elements...
-    chart->axisY()->setRange(0, 100);
+    cpuChart->axisY()->setRange(0, 100);
 
     lastIdleCount = 0;
     lastUsedCount = 0;
@@ -36,9 +39,9 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
 }
 
 void ResourcesTab::updateGraphs() {
-    series->append(timeCount, get_used_cpu());
-    chart->axisX()->setRange(timeCount - CPU_GRAPH_RANGE, timeCount);
-    chartView->repaint();
+    cpuSeries->append(timeCount, get_used_cpu());
+    cpuChart->axisX()->setRange(timeCount - CPU_GRAPH_RANGE, timeCount);
+    cpuChartView->repaint();
     timeCount++;
 }
 

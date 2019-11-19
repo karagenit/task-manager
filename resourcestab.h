@@ -26,9 +26,15 @@ public slots:
 
 private:
     QTimer *timer;
-    QChart *chart;
-    QChartView *chartView;
-    QLineSeries *series;
+    QChart *cpuChart;
+    QChartView *cpuChartView;
+    QLineSeries *cpuSeries;
+    QChart *memoryChart;
+    QChartView *memoryChartView;
+    QLineSeries *memorySeries;
+    QChart *networkChart;
+    QChartView *networkChartView;
+    QLineSeries *networkSeries;
     int timeCount;
     int lastIdleCount;
     int lastUsedCount;
