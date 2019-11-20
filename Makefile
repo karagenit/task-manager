@@ -17,7 +17,8 @@ testall: $(TESTS)
 	$(foreach test, $^, ./$(test))
 
 task_monitor: builds/main.o builds/systemtab.o builds/resourcestab.o\
-	builds/moc_systemtab.o builds/moc_resourcestab.o
+	builds/moc_systemtab.o builds/moc_resourcestab.o builds/moc_file_system_tab.o\
+	builds/file_system_tab.o builds/moc_processes_tab.o builds/processes_tab.o
 	$(LINK) -o $@ $^ $(QTLIBS)
 
 .PHONY: clean
@@ -46,7 +47,7 @@ builds/tests/test_trim.o: tests/test_trim.cpp helper_functions.h
 	@mkdir -p builds/tests
 	@$(BUILD) $(FLAGS) -c -o $@ tests/test_trim.cpp
 
-builds/main.o: main.cpp systemtab.h resourcestab.h
+builds/main.o: main.cpp systemtab.h resourcestab.h file_system_tab.h processes_tab.h
 	@mkdir -p builds
 	@$(BUILD) $(FLAGS) -c $(QTINCLUDES) main.cpp -o $@
 
@@ -60,6 +61,16 @@ builds/moc_resourcestab.o: resourcestab.h
 	@$(MOC) $(QTINCLUDES) -I./builds/qt $< -o builds/moc_resourcestab.cc
 	@$(BUILD) $(FLAGS) $(QTINCLUDES) builds/moc_resourcestab.cc -c -o $@
 
+builds/moc_file_system_tab.o: file_system_tab.h
+	@mkdir -p builds
+	@$(MOC) $(QTINCLUDES) -I./builds/qt $< -o builds/moc_file_system_tab.cc
+	@$(BUILD) $(FLAGS) $(QTINCLUDES) builds/moc_file_system_tab.cc -c -o $@
+
+builds/moc_processes_tab.o: processes_tab.h
+	@mkdir -p builds
+	@$(MOC) $(QTINCLUDES) -I./builds/qt $< -o builds/moc_processes_tab.cc
+	@$(BUILD) $(FLAGS) $(QTINCLUDES) builds/moc_processes_tab.cc -c -o $@
+
 builds/systemtab.o: systemtab.cpp systemtab.h
 	@mkdir -p builds
 	@$(BUILD) $(FLAGS) -c $(QTINCLUDES) systemtab.cpp -o $@
@@ -67,4 +78,12 @@ builds/systemtab.o: systemtab.cpp systemtab.h
 builds/resourcestab.o: resourcestab.cpp resourcestab.h
 	@mkdir -p builds
 	@$(BUILD) $(FLAGS) -c $(QTINCLUDES) resourcestab.cpp -o $@
+
+builds/file_system_tab.o: file_system_tab.cpp file_system_tab.h
+	@mkdir -p builds
+	@$(BUILD) $(FLAGS) -c $(QTINCLUDES) $< -o $@
+
+builds/processes_tab.o: processes_tab.cpp processes_tab.h
+	@mkdir -p builds
+	@$(BUILD) $(FLAGS) -c $(QTINCLUDES) $< -o $@
 
