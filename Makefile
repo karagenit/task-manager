@@ -23,7 +23,8 @@ task_monitor:
 
 task_monitor: builds/main.o builds/systemtab.o builds/resourcestab.o\
 	builds/moc_systemtab.o builds/moc_resourcestab.o builds/moc_file_system_tab.o\
-	builds/file_system_tab.o builds/moc_processes_tab.o builds/processes_tab.o
+	builds/file_system_tab.o builds/moc_processes_tab.o builds/processes_tab.o\
+	builds/menu_bar.o
 	$(LINK) -o $@ $^ $(QTLIBS)
 
 .PHONY: clean
@@ -59,7 +60,8 @@ builds/file-system/file_system.o: file-system/file_system.cpp file-system/file_s
 	@mkdir -p builds/file-system
 	@$(BUILD) $(ARGS) -c -o $@ file-system/file_system.cpp
 
-builds/main.o: main.cpp systemtab.h resourcestab.h file_system_tab.h processes_tab.h
+builds/main.o: main.cpp systemtab.h resourcestab.h file_system_tab.h processes_tab.h\
+	menu_bar.h
 	@mkdir -p builds
 	@$(BUILD) $(FLAGS) -c $(QTINCLUDES) main.cpp -o $@
 
@@ -98,3 +100,8 @@ builds/file_system_tab.o: file_system_tab.cpp file_system_tab.h
 builds/processes_tab.o: processes_tab.cpp processes_tab.h
 	@mkdir -p builds
 	@$(BUILD) $(FLAGS) -c $(QTINCLUDES) $< -o $@
+
+builds/menu_bar.o: menu_bar.cpp menu_bar.h
+	@mkdir -p builds
+	@$(BUILD) $(FLAGS) -c $(QTINCLUDES) $< -o $@
+
