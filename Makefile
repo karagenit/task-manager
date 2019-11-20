@@ -17,8 +17,6 @@ MOC=moc
 all: testall task_monitor
 
 testall: $(TESTS)
-
-task_monitor:
 	$(foreach test, $^, ./$(test))
 
 task_monitor: builds/main.o builds/systemtab.o builds/resourcestab.o\
@@ -27,9 +25,14 @@ task_monitor: builds/main.o builds/systemtab.o builds/resourcestab.o\
 	builds/menu_bar.o
 	$(LINK) -o $@ $^ $(QTLIBS)
 
-.PHONY: clean
+.PHONY: clean commit
 clean:
 	@rm -rf builds
+
+commit:
+	git add .
+	git commit
+	git push
 
 builds/test_trim: builds/helper_functions.o builds/tests/test_trim.o
 	@printf "\033[32mBuilding: "
