@@ -1,10 +1,12 @@
 TEMPLATE = app
 TARGET = TaskManager
-QT = core gui
+QT = core gui charts
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 SOURCES += \
     main.cpp \
-    testtab.cpp
+    systemtab.cpp \
+    resourcestab.cpp
 
 HEADERS += \
-    testtab.h
+    systemtab.h \
+    resourcestab.h

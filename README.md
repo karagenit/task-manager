@@ -9,3 +9,4 @@
 ## Technologies Used
 - QT
 - [Google Code Standard](code-standard/)
+- QT Charts Module (on Debian, install the `libqt5charts5-dev` package)
