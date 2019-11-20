@@ -1,63 +1,118 @@
 #include "running_process.h"
 
 #include <sstream>
+#include <fstream>
+#include <cstring>
+#include <dirent.h>
+#include <unistd.h>
 
 RunningProcess::RunningProcess(int pid) {
   // set pid
   this->pid = pid;
 
-  // set parent pid
-  std::string parent_cmd = "cat /proc/" + std::to_string(this->pid) +
-    "/stat" + " | cut -d' ' -f4";
-  std::string parent_pid = popen_string(parent_cmd);
-  this->parent_pid_ = std::stoi(parent_pid);
+  // parse /proc/<pid>/stat for process name and parent pid
+  std::ifstream in("/proc/" + std::to_string(this->pid) + "/stat");
+  if (!in) {
+    return;
+  }
+  std::string name;
+  in >> name >> name;
+  // discard parentheses from process name
+  this->name_ = name.substr(1, name.length - 2);
 
-  // set name
-  std::string name_cmd = "cat /proc/" + std::to_string(this->pid) +
-    "/stat" + " | cut -d' ' -f2";
-  this->name_ = popen_string(parent_cmd);
+  std::string parent_pid_string;
+  in >> parent_pid_string >> parent_pid_string;
+  this->parent_pid_ = std::stoi(parent_pid_string);
+
+  in.close();
 }
 
 std::string RunningProcess::get_user() {
-  std::string uid_cmd = "cat /proc/" + std::to_string(this->pid) + 
-    "/uid_map";
-  std::string uid_map = popen_string(uid_cmd);
-  std::stringstream ss;
-  ss << uid_map;
-  //get the third int from uid_map (the process owner's uid)
-  int uid;
-  for (int i = 0; i < 3; i++) {
-    ss >> uid;
+  
+  //get the process owner's uid from /proc/<pid>/uid_map
+  std::ifstream in("/proc/" + std::to_string(this->pid) + "/uid_map");
+  if (!in) {
+    return NULL;
   }
+  int uid;
+  in >> uid >> uid >> uid;
+  in.close();
+  //TODO- get the name of the user instead of just their uid
   return std::to_string(uid);
 }
 
 std::string RunningProcess::get_status() {
-  std::string stat_cmd = "cat /proc/" + std::to_string(this->pid) +
-    "/stat" + " | cut -d' ' -f3";
-  return popen_string(stat_cmd);
-}
-
-/* inspired by 
-https://www.jeremymorgan.com/tutorials/c-programming/how-to-capture-the-output-of-a-linux-command-in-c/ 
-*/
-
-std::string RunningProcess::popen_string(std::string cmd) {
-  std::string answer;
-  FILE *fp = popen(cmd.c_str(), "r");
-  char buffer[1024];
-  while (!feof(fp)) {
-    if (fgets(buffer, 1024, fp)) {
-      answer.append(buffer);
-    }
+  std::ifstream in("/proc/" + std::to_string(this->pid) + "/stat");
+  if (!in) {
+    return NULL;
   }
-  pclose(fp);
+  std::string answer;
+  for (int i = 0; i < 3; i++) {
+    in >> answer;
+  }
+  in.close();
+  //TODO- interpret the status as a human readable string
   return answer;
 }
 
+
 std::vector<file_info> RunningProcess::get_files() {
-  //TODO- handle the case where we don't have permission to view the fds
   std::vector<file_info> answer;
-  std::string ls_fds = "ls /proc/" + std::to_string(this->pid) + "/fd";
-  std::string all_fds = popen_string(ls_fds);
+  std::string path = "/proc/" + std::to_string(this->pid) + "/fd";
+  DIR *dir = opendir(path.c_str);
+  if (dir == NULL) {
+    //TODO- better handle the case where we don't have permission
+    //to open /proc/<pid>/fd
+    return answer; //return an empty list?
+  }
+  struct dirent *ent;
+  while ((ent = readdir(dir)) != NULL) {
+    std::string fd_path = path + "/" + ent->d_name;
+    std::string buffer(128, '\0');
+    int bytes_read = readlink(fd_path.c_str, &buffer[0], buffer.capacity() - 1);
+    if (bytes_read > 0) {
+      buffer[bytes_read] = '\0';
+    }
+    file_info info;
+    info.fd = std::stoi(ent->d_name);
+    info.object = buffer;
+    info.type = "file";
+    char *socket = std::strstr(buffer.c_str, "socket");
+    if (socket) {
+      info.type = "socket";
+    }
+    else {
+      char *pipe = std::strstr(buffer.c_str, "pipe");
+      if (pipe) {
+        info.type = "pipe";
+      }
+    }
+    answer.push_back(info);
+  }
+  closedir(dir);
+
+  return answer;
+}
+
+// Returns the Proportional Set Size from /proc/<pid>/smaps_rollup
+std::string RunningProcess::get_memory() {
+  std::ifstream in("/proc/" + std::to_string(this->pid) + "/smaps_rollup");
+  if (!in) {
+    return NULL;
+  }
+  std::string line;
+  while (std::getline(in, line)) {
+    std::istringstream stream(line);
+    std::string type;
+    stream >> type;
+    if (type.compare("Pss:") == 0) {
+      std::string amount;
+      std::string unit;
+      stream >> amount >> unit;
+      in.close();
+      return amount + " " + unit;
+    }
+  }
+  in.close();
+  return NULL;
 }
