@@ -6,6 +6,8 @@ class ProcessesTab : public QWidget {
   Q_OBJECT
   public:
     explicit ProcessesTab(QWidget *parent = nullptr);
+  private:
+    static std::vector<RunningProcess *> get_all_processes();
 
 signals:
 public slots:
