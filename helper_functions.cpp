@@ -30,3 +30,17 @@ string ltrim(const string str) {
 string trim(const string str) {
   return ltrim(rtrim(str));
 }
+
+bool is_number (const string str) {
+  if (str.empty()) {
+    return false;
+  }
+  string::const_iterator i = str.begin();
+  while (i != str.end()) {
+    if (!isdigit(*i)) {
+      return false;
+    }
+    i++;
+  }
+  return true;
+}
