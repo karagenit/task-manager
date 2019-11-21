@@ -75,3 +75,6 @@ Thumbs.db
 # --------------
 builds/
 task_monitor
+
+# VSCode Settings
+.vscode
