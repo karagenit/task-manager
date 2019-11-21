@@ -24,10 +24,16 @@ class RunningProcess {
     std::vector<file_info> get_files();
     std::vector<RunningProcess *> get_children();
     RunningProcess *get_parent();
+    int get_parent_pid();
+    void add_child(RunningProcess *);
+    
   private:
     int parent_pid_;
     int owner_uid_;
     std::string name_;
     std::string popen_string(std::string);
+    std::vector<RunningProcess *> children_;
+  protected:
+    RunningProcess *parent_;
     
 };

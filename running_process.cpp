@@ -18,7 +18,7 @@ RunningProcess::RunningProcess(int pid) {
   std::string name;
   in >> name >> name;
   // discard parentheses from process name
-  this->name_ = name.substr(1, name.length - 2);
+  this->name_ = name.substr(1, name.length() - 2);
 
   std::string parent_pid_string;
   in >> parent_pid_string >> parent_pid_string;
@@ -59,7 +59,7 @@ std::string RunningProcess::get_status() {
 std::vector<file_info> RunningProcess::get_files() {
   std::vector<file_info> answer;
   std::string path = "/proc/" + std::to_string(this->pid) + "/fd";
-  DIR *dir = opendir(path.c_str);
+  DIR *dir = opendir(path.c_str());
   if (dir == NULL) {
     //TODO- better handle the case where we don't have permission
     //to open /proc/<pid>/fd
@@ -69,7 +69,7 @@ std::vector<file_info> RunningProcess::get_files() {
   while ((ent = readdir(dir)) != NULL) {
     std::string fd_path = path + "/" + ent->d_name;
     std::string buffer(128, '\0');
-    int bytes_read = readlink(fd_path.c_str, &buffer[0], buffer.capacity() - 1);
+    int bytes_read = readlink(fd_path.c_str(), &buffer[0], buffer.capacity() - 1);
     if (bytes_read > 0) {
       buffer[bytes_read] = '\0';
     }
@@ -77,12 +77,12 @@ std::vector<file_info> RunningProcess::get_files() {
     info.fd = std::stoi(ent->d_name);
     info.object = buffer;
     info.type = "file";
-    char *socket = std::strstr(buffer.c_str, "socket");
+    const char *socket = std::strstr(buffer.c_str(), "socket");
     if (socket) {
       info.type = "socket";
     }
     else {
-      char *pipe = std::strstr(buffer.c_str, "pipe");
+      const char *pipe = std::strstr(buffer.c_str(), "pipe");
       if (pipe) {
         info.type = "pipe";
       }
@@ -115,4 +115,24 @@ std::string RunningProcess::get_memory() {
   }
   in.close();
   return NULL;
+}
+
+void RunningProcess::add_child(RunningProcess *child) {
+  if (child == NULL) {
+    return;
+  }
+  children_.push_back(child);
+  child->parent_ = this;
+}
+
+RunningProcess *RunningProcess::get_parent() {
+  return parent_;
+}
+
+std::vector<RunningProcess *> RunningProcess::get_children() {
+  return children_;
+}
+
+int RunningProcess::get_parent_pid() {
+  return parent_pid_;
 }
