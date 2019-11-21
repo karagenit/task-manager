@@ -8,6 +8,7 @@ FLAGS=-Wall -std=c++17 -fPIC $(DEFINES) -pipe
 BUILD=g++
 QT_BASE=/usr/include/x86_64-linux-gnu/qt5
 QTLIBS=-lQt5Core -lQt5Gui -lQt5Widgets -lQt5Gui -lQt5Charts -lGL -lpthread
+LIBS=-lstdc++fs
 QTINCLUDES=-I$(QT_BASE) -I$(QT_BASE)/QtCharts -I$(QT_BASE)/QtWidgets -I$(QT_BASE)/QtGui -I$(QT_BASE)/QtCore -I/usr/include/libdrm
 LFLAGS=-Wall -Werror
 
@@ -23,7 +24,7 @@ task_monitor: builds/main.o builds/systemtab.o builds/resourcestab.o\
 	builds/moc_systemtab.o builds/moc_resourcestab.o builds/moc_file_system_tab.o\
 	builds/file_system_tab.o builds/moc_processes_tab.o builds/processes_tab.o\
 	builds/menu_bar.o
-	$(LINK) -o $@ $^ $(QTLIBS)
+	$(LINK) -o $@ $^ $(QTLIBS) $(LIBS)
 
 .PHONY: clean commit
 clean:

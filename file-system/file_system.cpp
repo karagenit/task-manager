@@ -1,8 +1,9 @@
 #include "file_system.h"
+#include <experimental/filesystem>
 
-#include <filesystem>
+using namespace std;
 
-namespace fs = std::filesystem;
+// need to add the -lstdc++fs flag at the end of the compile step
 
 FileSystemEntry::FileSystemEntry(string) {
   device_ = "";

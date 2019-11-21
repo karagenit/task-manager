@@ -5,7 +5,7 @@
 
 class FileSystemEntry {
   public:
-    FileSystemEntry();
+    FileSystemEntry(std::string);
     ~FileSystemEntry();
   private:
     std::string device_;
