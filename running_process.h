@@ -1,3 +1,6 @@
+#ifndef RUNNING_PROCESS_H_
+#define RUNNING_PROCESS_H_
+
 #include <string>
 #include <vector>
 
@@ -37,3 +40,5 @@ class RunningProcess {
     RunningProcess *parent_;
     
 };
+
+#endif

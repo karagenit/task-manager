@@ -16,7 +16,7 @@ int main(int argc, char **argv)
     main_window->setMinimumSize(rec.width() * 0.5, rec.height() * 0.5);
     QTabWidget *tabs = new QTabWidget;
     tabs->addTab(new SystemTab, "System Info");
-    tabs->addTab(new ResourcesTab, "Resources");
+    //tabs->addTab(new ResourcesTab, "Resources");
     tabs->addTab(new FileSystemTab, "File System");
     tabs->addTab(new ProcessesTab, "Processes");
     main_window->setCentralWidget(tabs);

@@ -12,6 +12,12 @@
 
 ProcessesTab::ProcessesTab(QWidget *parent) : QWidget(parent) {
   std::vector<RunningProcess *> all_processes = ProcessesTab::get_all_processes();
+
+  QLabel *label = new QLabel(QString::fromStdString(std::string("coolio")));
+
+  QVBoxLayout *layout = new QVBoxLayout;
+  layout->addWidget(label);
+  setLayout(layout);
   //TODO- actually render the UI from the list of all processes
 }
 
