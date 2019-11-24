@@ -3,6 +3,7 @@
 #include <sstream>
 #include <fstream>
 #include <cstring>
+#include <iostream>
 #include <dirent.h>
 #include <unistd.h>
 
@@ -23,6 +24,7 @@ RunningProcess::RunningProcess(int pid) {
   std::string parent_pid_string;
   in >> parent_pid_string >> parent_pid_string;
   this->parent_pid_ = std::stoi(parent_pid_string);
+  //std::cout << "parent_pid_: " << parent_pid_ << "\n";
 
   in.close();
 }
