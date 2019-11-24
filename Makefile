@@ -45,7 +45,7 @@ builds/running_process.o: running_process.cpp running_process.h
 	@printf $@
 	@printf "\033[0m\n"
 	@mkdir -p builds
-	@$(BUILD) $(FLAGS) -c -o $@ running_process.cpp
+	@$(BUILD) $(FLAGS) -c $(QTINCLUDES) -o $@ running_process.cpp
 
 builds/tests/test_trim.o: tests/test_trim.cpp helper_functions.h
 	@printf "\033[32mBuilding: "

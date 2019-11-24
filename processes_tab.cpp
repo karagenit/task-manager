@@ -22,16 +22,21 @@ ProcessesTab::ProcessesTab(QWidget *parent) : QWidget(parent) {
   QTreeWidget *tree = new QTreeWidget();
   tree->setColumnCount(2);
   QStringList header_labels;
+  header_labels.push_back(QString("Process Name"));
+  header_labels.push_back(QString("Status"));
+  header_labels.push_back(QString("% CPU"));
   header_labels.push_back(QString("PID"));
-  header_labels.push_back(QString("Name"));
+  header_labels.push_back(QString("Memory"));
+
+
+
   tree->setHeaderLabels(header_labels);
   QList<QTreeWidgetItem *> items;
-  for (int i = 0; i < 50; i++) {
-    QTreeWidgetItem *item = new QTreeWidgetItem((QTreeWidget *)0, QStringList(QString("item: %1").arg(i)));
-    QTreeWidgetItem *child = new QTreeWidgetItem((QTreeWidget *)0, QStringList(QString("item: %1").arg(i)));
-    item->addChild(child);
-    items.append(item);
 
+  for (unsigned int i = 0; i < all_processes.size(); i++) {
+    RunningProcess *proc = all_processes.at(i);
+    QTreeWidgetItem *item = proc->get_qtree_item();
+    items.append(item);
   }
   tree->insertTopLevelItems(0, items);
   
@@ -51,10 +56,10 @@ std::vector<RunningProcess *> ProcessesTab::get_all_processes() {
     
     while ((ent = readdir(dir)) != NULL) {
       std::string proc_path = std::string("/proc/") + ent->d_name;
-      if (is_number(proc_path)) {
-        RunningProcess *proc = new RunningProcess(std::stoi(proc_path));
+      if (is_number(ent->d_name)) {
+        RunningProcess *proc = new RunningProcess(std::stoi(ent->d_name));
         answer.push_back(proc);
-        proc_map[std::stoi(proc_path)] = proc;
+        proc_map[std::stoi(ent->d_name)] = proc;
       }
     }
     closedir(dir);

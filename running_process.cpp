@@ -98,7 +98,7 @@ std::vector<file_info> RunningProcess::get_files() {
 std::string RunningProcess::get_memory() {
   std::ifstream in("/proc/" + std::to_string(this->pid) + "/smaps_rollup");
   if (!in) {
-    return NULL;
+    return "---";
   }
   std::string line;
   while (std::getline(in, line)) {
@@ -114,7 +114,7 @@ std::string RunningProcess::get_memory() {
     }
   }
   in.close();
-  return NULL;
+  return "---";
 }
 
 void RunningProcess::add_child(RunningProcess *child) {
@@ -135,4 +135,25 @@ std::vector<RunningProcess *> RunningProcess::get_children() {
 
 int RunningProcess::get_parent_pid() {
   return parent_pid_;
+}
+
+std::string RunningProcess::get_name() {
+  return name_;
+}
+
+std::string RunningProcess::get_cpu_percent() {
+  return std::string("XX");
+}
+
+QTreeWidgetItem *RunningProcess::get_qtree_item() {
+  QStringList fields;
+  fields.push_back(QString(name_.c_str())); //name
+  fields.push_back(QString(get_status().c_str())); //status
+  fields.push_back(QString(get_cpu_percent().c_str())); //% CPU
+  std::string pid_string = std::to_string(pid);
+  fields.push_back(QString(pid_string.c_str())); // PID
+  fields.push_back(QString(get_memory().c_str())); // Memory
+  QTreeWidgetItem *answer = new QTreeWidgetItem((QTreeWidget *)0, fields);
+  
+  return answer;
 }

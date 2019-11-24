@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <QTreeWidget>
 
 typedef struct file_info {
   int fd;
@@ -21,6 +22,7 @@ class RunningProcess {
     std::string get_virtual_memory();
     std::string get_cpu_time();
     std::string get_start_datetime();
+    std::string get_name();
     void stop();
     void resume();
     void kill();
@@ -29,6 +31,7 @@ class RunningProcess {
     RunningProcess *get_parent();
     int get_parent_pid();
     void add_child(RunningProcess *);
+    QTreeWidgetItem *get_qtree_item();
     
   private:
     int parent_pid_;
