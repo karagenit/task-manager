@@ -5,7 +5,9 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <iostream>
 #include <dirent.h>
+#include <QTreeWidget>
 
 #include "running_process.h"
 #include "helper_functions.h"
@@ -13,11 +15,29 @@
 ProcessesTab::ProcessesTab(QWidget *parent) : QWidget(parent) {
   std::vector<RunningProcess *> all_processes = ProcessesTab::get_all_processes();
 
-  QLabel *label = new QLabel(QString::fromStdString(std::string("coolio")));
-
   QVBoxLayout *layout = new QVBoxLayout;
-  layout->addWidget(label);
+  layout->setMargin(0);
+  layout->setSpacing(0);
+
+  QTreeWidget *tree = new QTreeWidget();
+  tree->setColumnCount(2);
+  QStringList header_labels;
+  header_labels.push_back(QString("PID"));
+  header_labels.push_back(QString("Name"));
+  tree->setHeaderLabels(header_labels);
+  QList<QTreeWidgetItem *> items;
+  for (int i = 0; i < 50; i++) {
+    QTreeWidgetItem *item = new QTreeWidgetItem((QTreeWidget *)0, QStringList(QString("item: %1").arg(i)));
+    QTreeWidgetItem *child = new QTreeWidgetItem((QTreeWidget *)0, QStringList(QString("item: %1").arg(i)));
+    item->addChild(child);
+    items.append(item);
+
+  }
+  tree->insertTopLevelItems(0, items);
+  
+  layout->addWidget(tree);
   setLayout(layout);
+
   //TODO- actually render the UI from the list of all processes
 }
 
