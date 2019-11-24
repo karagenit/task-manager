@@ -12,6 +12,7 @@ class ProcessesTab : public QWidget {
     explicit ProcessesTab(QWidget *parent = nullptr);
   private:
     std::vector<RunningProcess *> get_root_processes();
+    std::string expanded_name(RunningProcess *);
     QTreeWidget *tree_widget();
     QTreeWidget *tree_widget_;
     void prepare_menu(const QPoint &pos);

@@ -105,7 +105,7 @@ std::vector<RunningProcess *> ProcessesTab::get_root_processes() {
 
 QTreeWidget *ProcessesTab::tree_widget() {
   QTreeWidget *tree = new QTreeWidget();
-  tree->setColumnCount(2);
+  tree->setColumnCount(5);
   QStringList header_labels;
   header_labels.push_back(QString("Process Name"));
   header_labels.push_back(QString("Status"));
@@ -193,12 +193,41 @@ void ProcessesTab::handle_properties() {
 
 void ProcessesTab::handle_fd_window() {
   int pid = get_sender_pid();
+  RunningProcess *proc = proc_map_[pid];
 
   QDialog popup(this);
   QVBoxLayout layout;
-  std::string title = "Files opened by process " + std::to_string(pid);
+  std::string title = "Files opened by " + expanded_name(proc) + ":";
   QLabel title_label(tr(title.c_str()));
   layout.addWidget(&title_label);
+
+  QTreeWidget *tree = new QTreeWidget();
+  tree->setColumnCount(3);
+  QStringList header_labels;
+  header_labels.push_back(QString("FD"));
+  header_labels.push_back(QString("Type"));
+  header_labels.push_back(QString("Object"));
+  tree->setHeaderLabels(header_labels);
+
+  std::vector<file_info> files = proc->get_files();
+
+  auto i = files.begin();
+  while (i != files.end()) {
+    file_info info = *i;
+
+    QStringList fields;
+    fields.push_back(QString(std::to_string(info.fd).c_str())); //fd
+    fields.push_back(QString(info.type.c_str())); //type
+    fields.push_back(QString(info.object.c_str())); // object
+    QTreeWidgetItem *item = new QTreeWidgetItem((QTreeWidget *)0, fields);
+    tree->addTopLevelItem(item);
+
+    i++;
+  }
+
+  layout.addWidget(tree);
+
+
   popup.setLayout(&layout);
   popup.exec();
 }
@@ -213,4 +242,11 @@ void ProcessesTab::handle_mmap_window() {
   layout.addWidget(&title_label);
   popup.setLayout(&layout);
   popup.exec();
+}
+
+std::string ProcessesTab::expanded_name(RunningProcess *proc) {
+  if (proc == NULL) {
+    return "NULL";
+  }
+  return "process \"" + proc->get_name() + "\" (PID " + std::to_string(proc->pid) + ")";
 }

@@ -7,6 +7,8 @@
 #include <dirent.h>
 #include <unistd.h>
 
+#include "helper_functions.h"
+
 RunningProcess::RunningProcess(int pid) {
   // set pid
   this->pid = pid;
@@ -69,27 +71,30 @@ std::vector<file_info> RunningProcess::get_files() {
   }
   struct dirent *ent;
   while ((ent = readdir(dir)) != NULL) {
-    std::string fd_path = path + "/" + ent->d_name;
-    std::string buffer(128, '\0');
-    int bytes_read = readlink(fd_path.c_str(), &buffer[0], buffer.capacity() - 1);
-    if (bytes_read > 0) {
-      buffer[bytes_read] = '\0';
-    }
-    file_info info;
-    info.fd = std::stoi(ent->d_name);
-    info.object = buffer;
-    info.type = "file";
-    const char *socket = std::strstr(buffer.c_str(), "socket");
-    if (socket) {
-      info.type = "socket";
-    }
-    else {
-      const char *pipe = std::strstr(buffer.c_str(), "pipe");
-      if (pipe) {
-        info.type = "pipe";
+    if (is_number(ent->d_name)) {
+      std::string fd_path = path + "/" + ent->d_name;
+      std::string buffer(128, '\0');
+      int bytes_read = readlink(fd_path.c_str(), &buffer[0], buffer.capacity() - 1);
+      if (bytes_read > 0) {
+        buffer[bytes_read] = '\0';
       }
+      file_info info;
+      info.fd = std::stoi(ent->d_name);
+      info.object = buffer;
+      info.type = "file";
+      const char *socket = std::strstr(buffer.c_str(), "socket");
+      if (socket) {
+        info.type = "socket";
+      }
+      else {
+        const char *pipe = std::strstr(buffer.c_str(), "pipe");
+        if (pipe) {
+          info.type = "pipe";
+        }
+      }
+      answer.push_back(info);
     }
-    answer.push_back(info);
+    
   }
   closedir(dir);
 
