@@ -11,10 +11,14 @@ class ProcessesTab : public QWidget {
     explicit ProcessesTab(QWidget *parent = nullptr);
   private:
     static std::vector<RunningProcess *> get_root_processes();
-    static QTreeWidget *tree_widget();
+    QTreeWidget *tree_widget();
+    QTreeWidget *tree_widget_;
+    void prepare_menu(const QPoint &pos);
 
-signals:
-public slots:
+  signals:
+
+  public slots:
+    void handle_stop();
 };
 
 #endif

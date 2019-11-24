@@ -8,6 +8,8 @@
 #include <iostream>
 #include <dirent.h>
 #include <QTreeWidget>
+#include <QAction>
+#include <QMenu>
 
 #include "running_process.h"
 #include "helper_functions.h"
@@ -110,5 +112,53 @@ QTreeWidget *ProcessesTab::tree_widget() {
   header_labels.push_back(QString("PID"));
   header_labels.push_back(QString("Memory"));
   tree->setHeaderLabels(header_labels);
+
+  tree->setContextMenuPolicy(Qt::CustomContextMenu);
+  connect(tree, &QTreeWidget::customContextMenuRequested, this,
+    &ProcessesTab::prepare_menu);
+  tree_widget_ = tree;
   return tree;
+}
+
+void ProcessesTab::prepare_menu(const QPoint &pos) {
+  QTreeWidgetItem *item = tree_widget_->itemAt(pos);
+
+
+  QAction *stop_act = new QAction(tr("Stop Process"), this);
+  
+  int pid = item->text(3).toInt();
+  QVariant v = qVariantFromValue(pid);
+  stop_act->setData(v);
+  connect(stop_act, SIGNAL(triggered()), this, SLOT(handle_stop()));
+  QMenu menu(this);
+  menu.addAction(stop_act);
+
+  QAction *continue_act = new QAction(tr("Continue Process"), this);
+  menu.addAction(continue_act);
+
+  menu.addSeparator();
+
+  QAction *end_act = new QAction(tr("End Process"), this);
+  menu.addAction(end_act);
+
+  QAction *kill_act = new QAction(tr("Kill Process"), this);
+  menu.addAction(kill_act);
+
+  menu.addSeparator();
+
+  QAction *memory_act = new QAction(tr("Memory Maps"), this);
+  menu.addAction(memory_act);
+
+  QAction *fd_act = new QAction(tr("Open Files"), this);
+  menu.addAction(fd_act);
+
+  QPoint pt(pos);
+  menu.exec(tree_widget_->mapToGlobal(pos));
+}
+
+void ProcessesTab::handle_stop() {
+  QAction *act = qobject_cast<QAction *>(sender());
+  QVariant v = act->data();
+  int val = v.value<int>();
+  std::cout << "stopping process " << val << "\n";
 }
