@@ -10,6 +10,7 @@
 #include <QTreeWidget>
 #include <QAction>
 #include <QMenu>
+#include <QDialog>
 
 #include "running_process.h"
 #include "helper_functions.h"
@@ -66,7 +67,7 @@ ProcessesTab::ProcessesTab(QWidget *parent) : QWidget(parent) {
 std::vector<RunningProcess *> ProcessesTab::get_root_processes() {
   std::vector<RunningProcess *> answer;
 
-  std::map<int, RunningProcess *> proc_map;
+
   DIR *dir = opendir("/proc/");
   if (dir != NULL) {
     struct dirent *ent;
@@ -76,7 +77,7 @@ std::vector<RunningProcess *> ProcessesTab::get_root_processes() {
       if (is_number(ent->d_name)) {
         RunningProcess *proc = new RunningProcess(std::stoi(ent->d_name));
         answer.push_back(proc);
-        proc_map[std::stoi(ent->d_name)] = proc;
+        proc_map_[std::stoi(ent->d_name)] = proc;
       }
     }
     closedir(dir);
@@ -89,8 +90,8 @@ std::vector<RunningProcess *> ProcessesTab::get_root_processes() {
   while (i != answer.end()) {
     RunningProcess *proc = *i;
     int parent_pid = proc->get_parent_pid();
-    if (proc_map.find(parent_pid) != proc_map.end()) {
-      RunningProcess *parent = proc_map[parent_pid];
+    if (proc_map_.find(parent_pid) != proc_map_.end()) {
+      RunningProcess *parent = proc_map_[parent_pid];
       parent->add_child(proc);
     }
     else {
@@ -127,8 +128,8 @@ void ProcessesTab::prepare_menu(const QPoint &pos) {
   QAction *stop_act = new QAction(tr("Stop Process"), this);
   
   int pid = item->text(3).toInt();
-  QVariant v = qVariantFromValue(pid);
-  stop_act->setData(v);
+  QVariant qv_pid = qVariantFromValue(pid);
+  stop_act->setData(qv_pid);
   connect(stop_act, SIGNAL(triggered()), this, SLOT(handle_stop()));
   QMenu menu(this);
   menu.addAction(stop_act);
@@ -146,19 +147,70 @@ void ProcessesTab::prepare_menu(const QPoint &pos) {
 
   menu.addSeparator();
 
-  QAction *memory_act = new QAction(tr("Memory Maps"), this);
-  menu.addAction(memory_act);
+  QAction *mmap_act = new QAction(tr("Memory Maps"), this);
+  mmap_act->setData(qv_pid);
+  connect(mmap_act, SIGNAL(triggered()), this, SLOT(handle_mmap_window()));
+  menu.addAction(mmap_act);
 
   QAction *fd_act = new QAction(tr("Open Files"), this);
+  fd_act->setData(qv_pid);
+  connect(fd_act, SIGNAL(triggered()), this, SLOT(handle_fd_window()));
   menu.addAction(fd_act);
+
+  menu.addSeparator();
+  QAction *properties_act = new QAction(tr("Properties"), this);
+  properties_act->setData(qv_pid);
+  connect(properties_act, SIGNAL(triggered()), this, SLOT(handle_properties()));
+  menu.addAction(properties_act);
 
   QPoint pt(pos);
   menu.exec(tree_widget_->mapToGlobal(pos));
 }
 
-void ProcessesTab::handle_stop() {
+int ProcessesTab::get_sender_pid() {
   QAction *act = qobject_cast<QAction *>(sender());
   QVariant v = act->data();
-  int val = v.value<int>();
-  std::cout << "stopping process " << val << "\n";
+  int pid = v.value<int>();
+  return pid;
+}
+
+void ProcessesTab::handle_stop() {
+  int pid = get_sender_pid();
+  std::cout << "stopping process " << pid << "\n";
+}
+
+void ProcessesTab::handle_properties() {
+  int pid = get_sender_pid();
+
+  QDialog popup(this);
+  QVBoxLayout layout;
+  std::string title = "Properties of process " + std::to_string(pid);
+  QLabel title_label(tr(title.c_str()));
+  layout.addWidget(&title_label);
+  popup.setLayout(&layout);
+  popup.exec();
+}
+
+void ProcessesTab::handle_fd_window() {
+  int pid = get_sender_pid();
+
+  QDialog popup(this);
+  QVBoxLayout layout;
+  std::string title = "Files opened by process " + std::to_string(pid);
+  QLabel title_label(tr(title.c_str()));
+  layout.addWidget(&title_label);
+  popup.setLayout(&layout);
+  popup.exec();
+}
+
+void ProcessesTab::handle_mmap_window() {
+  int pid = get_sender_pid();
+
+  QDialog popup(this);
+  QVBoxLayout layout;
+  std::string title = "Memory maps for process " + std::to_string(pid);
+  QLabel title_label(tr(title.c_str()));
+  layout.addWidget(&title_label);
+  popup.setLayout(&layout);
+  popup.exec();
 }

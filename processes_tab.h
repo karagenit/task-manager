@@ -2,6 +2,7 @@
 #define PROCESSES_TAB_H_
 
 #include <QWidget>
+#include <map>
 
 #include "running_process.h"
 
@@ -10,15 +11,20 @@ class ProcessesTab : public QWidget {
   public:
     explicit ProcessesTab(QWidget *parent = nullptr);
   private:
-    static std::vector<RunningProcess *> get_root_processes();
+    std::vector<RunningProcess *> get_root_processes();
     QTreeWidget *tree_widget();
     QTreeWidget *tree_widget_;
     void prepare_menu(const QPoint &pos);
+    int get_sender_pid();
+    std::map<int, RunningProcess *> proc_map_;
 
   signals:
 
   public slots:
     void handle_stop();
+    void handle_properties();
+    void handle_fd_window();
+    void handle_mmap_window();
 };
 
 #endif
