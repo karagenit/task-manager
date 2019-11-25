@@ -46,17 +46,23 @@ std::string RunningProcess::get_user() {
 }
 
 std::string RunningProcess::get_status() {
-  std::ifstream in("/proc/" + std::to_string(this->pid) + "/stat");
+  std::ifstream in("/proc/" + std::to_string(this->pid) + "/status");
   if (!in) {
-    return NULL;
+    return "-";
   }
-  std::string answer;
-  for (int i = 0; i < 3; i++) {
-    in >> answer;
+  std::string line;
+  while (std::getline(in, line)) {
+    std::istringstream stream(line);
+    std::string label;
+    stream >> label;
+    if (label.compare("State:") == 0) {
+      std::string state;
+      stream >> state >> state;
+      return state.substr(1, state.length() - 2);
+    }
+    
   }
-  in.close();
-  //TODO- interpret the status as a human readable string
-  return answer;
+  return "-";
 }
 
 
