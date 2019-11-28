@@ -181,12 +181,17 @@ void ProcessesTab::handle_stop() {
 
 void ProcessesTab::handle_properties() {
   int pid = get_sender_pid();
+  RunningProcess *proc = proc_map_[pid];
 
   QDialog popup(this);
   QVBoxLayout layout;
-  std::string title = "Properties of process " + std::to_string(pid);
+  std::string title = "Properties of process " + expanded_name(proc) + ":";
   QLabel title_label(tr(title.c_str()));
   layout.addWidget(&title_label);
+
+  QTreeWidget *tree = proc->get_detailed_view();
+  layout.addWidget(tree);
+
   popup.setLayout(&layout);
   popup.exec();
 }

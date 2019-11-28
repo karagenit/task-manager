@@ -170,3 +170,79 @@ QTreeWidgetItem *RunningProcess::get_qtree_item() {
   
   return answer;
 }
+
+QTreeWidget *RunningProcess::get_detailed_view() {
+  QTreeWidget *tree = new QTreeWidget();
+  tree->setColumnCount(2);
+
+  QStringList header_labels;
+  header_labels.push_back(QString("Property"));
+  header_labels.push_back(QString("Value"));
+  tree->setHeaderLabels(header_labels);
+  
+
+  std::vector<std::string> keys;
+  std::vector<std::string> vals;
+
+  keys.push_back("Name");
+  vals.push_back(name_);
+
+  keys.push_back("User");
+  vals.push_back(get_user());
+
+  keys.push_back("State");
+  vals.push_back(get_status());
+
+  keys.push_back("Memory");
+  vals.push_back(get_memory());
+
+  keys.push_back("Virtual Memory");
+  vals.push_back(get_virtual_memory());
+
+  keys.push_back("Resident Memory");
+  vals.push_back(get_resident_memory());
+
+  keys.push_back("Shared Memory");
+  vals.push_back(get_shared_memory());
+
+  keys.push_back("CPU Time");
+  vals.push_back(get_cpu_time());
+
+  keys.push_back("Time Started");
+  vals.push_back(get_start_datetime());
+
+  for (unsigned int i = 0; i < keys.size(); i++) {
+    QStringList fields;
+    fields.push_back(QString(keys.at(i).c_str()));
+    fields.push_back(QString(vals.at(i).c_str()));
+    QTreeWidgetItem *item = new QTreeWidgetItem((QTreeWidget *)0, fields);
+    tree->addTopLevelItem(item);
+  }
+
+
+  //name, user, state, memory, virtual memory, resident memory,
+  //shared memory, CPU time, date/time started
+
+  
+  return tree;
+}
+
+std::string RunningProcess::get_start_datetime() {
+  return "---";
+}
+
+std::string RunningProcess::get_shared_memory() {
+  return "---";
+}
+
+std::string RunningProcess::get_resident_memory() {
+  return "---";
+}
+
+std::string RunningProcess::get_virtual_memory() {
+  return "---";
+}
+
+std::string RunningProcess::get_cpu_time() {
+  return "---";
+}

@@ -20,6 +20,9 @@ class RunningProcess {
     std::string get_user();
     std::string get_memory();
     std::string get_virtual_memory();
+    std::string get_shared_memory();
+    std::string get_resident_memory();
+
     std::string get_cpu_time();
     std::string get_start_datetime();
     std::string get_name();
@@ -32,6 +35,8 @@ class RunningProcess {
     int get_parent_pid();
     void add_child(RunningProcess *);
     QTreeWidgetItem *get_qtree_item();
+    QTreeWidget *get_detailed_view();
+
     
   private:
     int parent_pid_;
