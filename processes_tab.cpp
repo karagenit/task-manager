@@ -1,5 +1,8 @@
 #include "processes_tab.h"
 
+#include <signal.h>
+#include <sys/types.h>
+
 #include <QLabel>
 #include <QVBoxLayout>
 #include <vector>
@@ -11,44 +14,28 @@
 #include <QAction>
 #include <QMenu>
 #include <QDialog>
+#include <QTimer>
 
 #include "running_process.h"
 #include "helper_functions.h"
-
-void expand_children(RunningProcess *proc, QTreeWidgetItem *tree) {
-  if (proc == NULL || tree == NULL) {
-    return;
-  }
-  QList<QTreeWidgetItem *> list;
-  std::vector<RunningProcess *> children = proc->get_children();
-  /*if (children.size() == 0) {
-    return;
-  }*/
-  auto i = children.begin();
-  while (i != children.end()) {
-    RunningProcess *child = *i;
-    QTreeWidgetItem *child_tree_widget = child->get_qtree_item();
-    expand_children(child, child_tree_widget);
-    list.append(child_tree_widget);
-    i++;
-  }
-  tree->addChildren(list);
-}
 
 QList<QTreeWidgetItem *> get_root_items(std::vector<RunningProcess *> procs) {
   QList<QTreeWidgetItem *> answer;
   auto i = procs.begin();
   while (i != procs.end()) {
     RunningProcess *proc = *i;
-    QTreeWidgetItem *root = proc->get_qtree_item();
-    expand_children(proc, root);
-    answer.append(root);
+    answer.append(proc->get_qtree_item());
     i++;
   }
   return answer;
 }
 
 ProcessesTab::ProcessesTab(QWidget *parent) : QWidget(parent) {
+  QTimer *timer = new QTimer(this);
+  QObject::connect(timer, SIGNAL(timeout()), this, SLOT(refresh()));
+  timer->start(1000);
+
+  
   std::vector<RunningProcess *> root_procs = ProcessesTab::get_root_processes();
 
   QVBoxLayout *layout = new QVBoxLayout;
@@ -135,14 +122,15 @@ void ProcessesTab::prepare_menu(const QPoint &pos) {
   menu.addAction(stop_act);
 
   QAction *continue_act = new QAction(tr("Continue Process"), this);
+  continue_act->setData(qv_pid);
+  connect(continue_act, SIGNAL(triggered()), this, SLOT(handle_continue()));
   menu.addAction(continue_act);
 
   menu.addSeparator();
 
-  QAction *end_act = new QAction(tr("End Process"), this);
-  menu.addAction(end_act);
-
   QAction *kill_act = new QAction(tr("Kill Process"), this);
+  kill_act->setData(qv_pid);
+  connect(kill_act, SIGNAL(triggered()), this, SLOT(handle_kill()));
   menu.addAction(kill_act);
 
   menu.addSeparator();
@@ -177,6 +165,37 @@ int ProcessesTab::get_sender_pid() {
 void ProcessesTab::handle_stop() {
   int pid = get_sender_pid();
   std::cout << "stopping process " << pid << "\n";
+  int status = kill(pid, SIGSTOP);
+  if (status == 0) {
+    std::cout << "success\n";
+  }
+  else {
+    std::cout << "failed\n";
+  }
+}
+
+void ProcessesTab::handle_continue() {
+  int pid = get_sender_pid();
+  std::cout << "continuing process " << pid << "\n";
+  int status = kill(pid, SIGCONT);
+  if (status == 0) {
+    std::cout << "success\n";
+  }
+  else {
+    std::cout << "failed\n";
+  }
+}
+
+void ProcessesTab::handle_kill() {
+  int pid = get_sender_pid();
+  std::cout << "killing process " << pid << "\n";
+  int status = kill(pid, SIGKILL);
+  if (status == 0) {
+    std::cout << "success\n";
+  }
+  else {
+    std::cout << "failed\n";
+  }
 }
 
 void ProcessesTab::handle_properties() {
@@ -254,4 +273,54 @@ std::string ProcessesTab::expanded_name(RunningProcess *proc) {
     return "NULL";
   }
   return "process \"" + proc->get_name() + "\" (PID " + std::to_string(proc->pid) + ")";
+}
+
+void ProcessesTab::refresh() {
+  DIR *dir = opendir("/proc/");
+  if (dir != NULL) {
+    struct dirent *ent;
+    
+    while ((ent = readdir(dir)) != NULL) {
+      if (is_number(ent->d_name)) {
+        int pid = std::stoi(ent->d_name);
+        if (proc_map_[pid] == NULL) {
+          RunningProcess *proc = new RunningProcess(pid);
+          proc_map_[pid] = proc;
+        }
+        else {
+          proc_map_[pid]->update_qtree_item();
+        }
+      }
+    }
+    closedir(dir);
+  }
+
+  auto i = proc_map_.begin();
+  while (i != proc_map_.end()) {
+    //also check if we should remove the process
+    RunningProcess *proc = i->second;
+    if (proc == NULL) {
+      i++;
+      continue;
+      //std::cout << "ummmmmm " << i->first << "\n";
+    }
+    int parent_pid = proc->get_parent_pid();
+
+    if (proc->get_parent() == NULL || 
+        parent_pid != proc->get_parent()->pid) {
+
+      //int parent_pid = proc->get_parent_pid();
+      if (proc->get_parent() != NULL) {
+        proc->get_parent()->remove_child(proc);
+      }
+      RunningProcess *parent = proc_map_[parent_pid];
+      if (parent) {
+        parent->add_child(proc);
+      }
+    }
+    i++;
+  }
+
+  //TODO- remove stopped processes from the ui
+  
 }

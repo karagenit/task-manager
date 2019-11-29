@@ -14,6 +14,7 @@ typedef struct file_info {
 class RunningProcess {
   public:
     RunningProcess(int pid); //specify parent/children in constructor?
+    ~RunningProcess();
     int pid;
     std::string get_status();
     std::string get_cpu_percent();
@@ -27,14 +28,17 @@ class RunningProcess {
     std::string get_start_datetime();
     std::string get_name();
     void stop();
-    void resume();
+    void continue_proc();
+    void end();
     void kill();
     std::vector<file_info> get_files();
     std::vector<RunningProcess *> get_children();
     RunningProcess *get_parent();
     int get_parent_pid();
     void add_child(RunningProcess *);
+    void remove_child(RunningProcess *);
     QTreeWidgetItem *get_qtree_item();
+    void update_qtree_item();
     QTreeWidget *get_detailed_view();
 
     
@@ -46,6 +50,8 @@ class RunningProcess {
     std::vector<RunningProcess *> children_;
   protected:
     RunningProcess *parent_;
+    QTreeWidgetItem *tree_item_;
+
     
 };
 

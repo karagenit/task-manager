@@ -11,7 +11,11 @@
 
 RunningProcess::RunningProcess(int pid) {
   // set pid
+  this->parent_ = NULL;
+
   this->pid = pid;
+
+  tree_item_ = new QTreeWidgetItem();
 
   // parse /proc/<pid>/stat for process name and parent pid
   std::ifstream in("/proc/" + std::to_string(this->pid) + "/stat");
@@ -26,9 +30,35 @@ RunningProcess::RunningProcess(int pid) {
   std::string parent_pid_string;
   in >> parent_pid_string >> parent_pid_string;
   this->parent_pid_ = std::stoi(parent_pid_string);
+
   //std::cout << "parent_pid_: " << parent_pid_ << "\n";
 
+  update_qtree_item();
+
+
   in.close();
+}
+
+RunningProcess::~RunningProcess() {
+  delete tree_item_;
+}
+
+void RunningProcess::remove_child(RunningProcess *child) {
+  if (child == NULL) {
+    return;
+  }
+  auto i = children_.begin();
+  while (i != children_.end()) {
+    RunningProcess *p = *i;
+    if (p == child) {
+      children_.erase(i);
+      tree_item_->removeChild(child->tree_item_);
+
+      child->parent_ = NULL;
+      return;
+    }
+    i++;
+  }
 }
 
 std::string RunningProcess::get_user() {
@@ -36,7 +66,7 @@ std::string RunningProcess::get_user() {
   //get the process owner's uid from /proc/<pid>/uid_map
   std::ifstream in("/proc/" + std::to_string(this->pid) + "/uid_map");
   if (!in) {
-    return NULL;
+    return "---";
   }
   int uid;
   in >> uid >> uid >> uid;
@@ -136,6 +166,8 @@ void RunningProcess::add_child(RunningProcess *child) {
   }
   children_.push_back(child);
   child->parent_ = this;
+
+  tree_item_->addChild(child->tree_item_);
 }
 
 RunningProcess *RunningProcess::get_parent() {
@@ -158,17 +190,17 @@ std::string RunningProcess::get_cpu_percent() {
   return std::string("XX");
 }
 
+void RunningProcess::update_qtree_item() {
+  tree_item_->setText(0, QString(name_.c_str()));
+  tree_item_->setText(1, QString(get_status().c_str()));
+  tree_item_->setText(2, QString(get_cpu_percent().c_str()));
+  tree_item_->setText(3, QString(std::to_string(pid).c_str()));
+  tree_item_->setText(4, get_memory().c_str());
+}
+
 QTreeWidgetItem *RunningProcess::get_qtree_item() {
-  QStringList fields;
-  fields.push_back(QString(name_.c_str())); //name
-  fields.push_back(QString(get_status().c_str())); //status
-  fields.push_back(QString(get_cpu_percent().c_str())); //% CPU
-  std::string pid_string = std::to_string(pid);
-  fields.push_back(QString(pid_string.c_str())); // PID
-  fields.push_back(QString(get_memory().c_str())); // Memory
-  QTreeWidgetItem *answer = new QTreeWidgetItem((QTreeWidget *)0, fields);
-  
-  return answer;
+  update_qtree_item();
+  return tree_item_;
 }
 
 QTreeWidget *RunningProcess::get_detailed_view() {

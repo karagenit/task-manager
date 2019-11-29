@@ -23,9 +23,15 @@ class ProcessesTab : public QWidget {
 
   public slots:
     void handle_stop();
+    void handle_continue();
+   // void handle_end();
+    void handle_kill();
+
     void handle_properties();
     void handle_fd_window();
     void handle_mmap_window();
+    void refresh();
+
 };
 
 #endif
