@@ -14,6 +14,7 @@ RunningProcess::RunningProcess(int pid) {
   this->parent_ = NULL;
 
   this->pid = pid;
+  parent_pid_ = 0;
 
   tree_item_ = new QTreeWidgetItem();
 
@@ -40,7 +41,12 @@ RunningProcess::RunningProcess(int pid) {
 }
 
 RunningProcess::~RunningProcess() {
-  delete tree_item_;
+  if (tree_item_) {
+    QTreeWidgetItem *parent = tree_item_->parent();
+    if (parent) {
+      parent->removeChild(tree_item_);
+    }
+  }
 }
 
 void RunningProcess::remove_child(RunningProcess *child) {

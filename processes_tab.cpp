@@ -1,6 +1,7 @@
 #include "processes_tab.h"
 
 #include <signal.h>
+#include <unistd.h>
 #include <sys/types.h>
 
 #include <QLabel>
@@ -280,6 +281,7 @@ void ProcessesTab::refresh() {
   if (dir != NULL) {
     struct dirent *ent;
     
+    // update all processes' listings and create new ones if needed.
     while ((ent = readdir(dir)) != NULL) {
       if (is_number(ent->d_name)) {
         int pid = std::stoi(ent->d_name);
@@ -295,21 +297,19 @@ void ProcessesTab::refresh() {
     closedir(dir);
   }
 
+  //update the parent (if needed) of all processes
   auto i = proc_map_.begin();
   while (i != proc_map_.end()) {
-    //also check if we should remove the process
     RunningProcess *proc = i->second;
     if (proc == NULL) {
       i++;
       continue;
-      //std::cout << "ummmmmm " << i->first << "\n";
     }
     int parent_pid = proc->get_parent_pid();
 
     if (proc->get_parent() == NULL || 
         parent_pid != proc->get_parent()->pid) {
 
-      //int parent_pid = proc->get_parent_pid();
       if (proc->get_parent() != NULL) {
         proc->get_parent()->remove_child(proc);
       }
@@ -321,6 +321,22 @@ void ProcessesTab::refresh() {
     i++;
   }
 
-  //TODO- remove stopped processes from the ui
+  // remove dead processes from the ui
+
+  i = proc_map_.begin();
+  while (i != proc_map_.end()) {
+    RunningProcess *proc = i->second;
+    if (proc == NULL) {
+      i++;
+      continue;
+    }
+    std::string path = "/proc/" + std::to_string(proc->pid);
+    int valid = access(path.c_str(), F_OK);
+    if (valid != 0) {
+      delete proc;
+      proc_map_.erase(i->first);
+    }
+    i++;
+  }
   
 }
