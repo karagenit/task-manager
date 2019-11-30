@@ -46,6 +46,9 @@ RunningProcess::~RunningProcess() {
     if (parent) {
       parent->removeChild(tree_item_);
     }
+    else {
+      tree_item_->setHidden(true);
+    }
   }
 }
 
@@ -217,6 +220,8 @@ void RunningProcess::update_qtree_item() {
   tree_item_->setText(2, QString(get_cpu_percent().c_str()));
   tree_item_->setText(3, QString(std::to_string(pid).c_str()));
   tree_item_->setText(4, get_memory().c_str());
+
+  //tree_item_->setD
 }
 
 QTreeWidgetItem *RunningProcess::get_qtree_item() {

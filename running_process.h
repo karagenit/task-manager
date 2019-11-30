@@ -15,6 +15,7 @@ class RunningProcess {
   public:
     RunningProcess(int pid); //specify parent/children in constructor?
     ~RunningProcess();
+    bool hide;
     int pid;
     std::string get_status();
     std::string get_cpu_percent();

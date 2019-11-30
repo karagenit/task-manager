@@ -333,10 +333,76 @@ void ProcessesTab::refresh() {
     std::string path = "/proc/" + std::to_string(proc->pid);
     int valid = access(path.c_str(), F_OK);
     if (valid != 0) {
+      for (RunningProcess *child : proc->get_children()) {
+        proc->remove_child(child);
+      }
+      
+      RunningProcess *parent = proc->get_parent();
+      if (parent) {
+        parent->remove_child(proc);
+      }
       delete proc;
       proc_map_.erase(i->first);
     }
     i++;
   }
-  
+  handle_user_filter();
+}
+
+void ProcessesTab::handle_user_filter() {
+  auto i = proc_map_.begin();
+  std::vector<RunningProcess *> matches;
+  while (i != proc_map_.end()) {
+    RunningProcess *proc = i->second;
+    if (proc == NULL) {
+      i++;
+      continue;
+    }
+    bool hide = proc->get_user().compare(current_user()) != 0;
+    if (!hide) {
+      //std::cout << "shouldn't hide " << proc->get_user() << "\n";
+      matches.push_back(proc);
+    }
+    
+    proc->get_qtree_item()->setHidden(hide);
+    proc->hide = hide;
+    i++;
+  }
+
+  //Todo- peek and only remove items that don't belong to the current user
+  int approved = 0;
+  while (approved < tree_widget_->topLevelItemCount()) {
+    QTreeWidgetItem *i = tree_widget_->topLevelItem(0);
+    if (i->isHidden()) {
+      tree_widget_->takeTopLevelItem(0);
+    }
+    else {
+      approved++;
+    }
+  }
+  //while (tree_widget_->takeTopLevelItem(0));
+
+  auto j = matches.begin();
+  while (j != matches.end()) {
+    RunningProcess *proc = *j;
+
+    RunningProcess *parent = proc->get_parent();
+    if (parent == NULL || parent->hide) {//get_qtree_item()->isHidden()) {
+      if (!proc->hide) {
+        if (parent) {
+          parent->get_qtree_item()->removeChild(proc->get_qtree_item());
+        }
+        int hmm = tree_widget_->indexOfTopLevelItem(proc->get_qtree_item());
+        //std::cout << hmm << "\n";
+        if (hmm < 0) {
+          tree_widget_->addTopLevelItem(proc->get_qtree_item());
+        }
+      }
+    }
+    j++;
+  }
+}
+
+std::string ProcessesTab::current_user() {
+  return uid_to_name(geteuid());
 }

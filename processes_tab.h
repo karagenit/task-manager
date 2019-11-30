@@ -18,6 +18,7 @@ class ProcessesTab : public QWidget {
     void prepare_menu(const QPoint &pos);
     int get_sender_pid();
     std::map<int, RunningProcess *> proc_map_;
+    std::string current_user();
 
   signals:
 
@@ -31,6 +32,7 @@ class ProcessesTab : public QWidget {
     void handle_fd_window();
     void handle_mmap_window();
     void refresh();
+    void handle_user_filter();
 
 };
 
