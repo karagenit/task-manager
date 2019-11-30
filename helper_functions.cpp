@@ -2,8 +2,8 @@
 
 #include <ctype.h>
 #include <string.h>
-
-#include <fstream>
+#include <pwd.h>
+#include <sys/types.h>
 
 using namespace std;
 
@@ -49,26 +49,11 @@ bool is_number (const string str) {
 }
 
 std::string uid_to_name(int uid) {
-  std::ifstream in("/etc/passwd");
-  std::string line;
-  while (std::getline(in, line)) {
-    unsigned int start_pos = line.find(":x:");
-    if (start_pos == std::string::npos) {
-      continue;
-    }
-    unsigned int end_pos = line.find(":", start_pos + strlen(":x:"));
-    if (end_pos == std::string::npos) {
-      continue;
-    }
-    std::string id = line.substr(start_pos + strlen(":x:"), end_pos - start_pos - strlen(":x:"));
-    if (is_number(id)) {
-      int num_id = std::stoi(id);
-      if (num_id == uid) {
-        in.close();
-        return line.substr(0, start_pos);
-      }
-    }
+
+  struct passwd *info = getpwuid(uid); // NOT thread safe
+  if (info == NULL) {
+    return "---";
   }
-  in.close();
-  return "---";
+  return info->pw_name;
+
 }
