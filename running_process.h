@@ -44,7 +44,7 @@ class RunningProcess {
     
   private:
     int parent_pid_;
-    int get_uid();
+    int get_uid(bool real = true);
     std::string name_;
     std::string popen_string(std::string);
     std::vector<RunningProcess *> children_;

@@ -67,15 +67,27 @@ void RunningProcess::remove_child(RunningProcess *child) {
   }
 }
 
-int RunningProcess::get_uid() {
-  std::ifstream in("/proc/" + std::to_string(this->pid) + "/uid_map");
-  if (!in) {
-    return -1;
+// get_uid() to get real uid
+// get_uid(false) to get effective uid
+
+int RunningProcess::get_uid(bool real) {
+  std::ifstream in("/proc/" + std::to_string(pid) + "/status");
+  std::string line;
+  while (std::getline(in, line)) {
+    if (line.find("Uid:") == 0) {
+      std::string uid_fields = line.substr(strlen("Uid:"));
+      std::stringstream ss(uid_fields);
+      int uid;
+      ss >> uid;
+      if (!real) { // effective uid instead of real
+        ss >> uid;
+      }
+      in.close();
+      return uid;
+    }
   }
-  int uid;
-  in >> uid >> uid >> uid;
   in.close();
-  return uid;
+  return -1;
 }
 
 std::string RunningProcess::get_user() {
