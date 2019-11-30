@@ -67,18 +67,21 @@ void RunningProcess::remove_child(RunningProcess *child) {
   }
 }
 
-std::string RunningProcess::get_user() {
-  
-  //get the process owner's uid from /proc/<pid>/uid_map
+int RunningProcess::get_uid() {
   std::ifstream in("/proc/" + std::to_string(this->pid) + "/uid_map");
   if (!in) {
-    return "---";
+    return -1;
   }
   int uid;
   in >> uid >> uid >> uid;
   in.close();
-  //TODO- get the name of the user instead of just their uid
-  return std::to_string(uid);
+  return uid;
+}
+
+std::string RunningProcess::get_user() {
+  
+  int uid = get_uid();
+  return uid_to_name(uid);
 }
 
 std::string RunningProcess::get_status() {
