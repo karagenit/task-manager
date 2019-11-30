@@ -64,9 +64,11 @@ std::string uid_to_name(int uid) {
     if (is_number(id)) {
       int num_id = std::stoi(id);
       if (num_id == uid) {
+        in.close();
         return line.substr(0, start_pos);
       }
     }
   }
+  in.close();
   return "---";
 }
