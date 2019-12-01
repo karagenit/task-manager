@@ -1,12 +1,13 @@
 #include "running_process.h"
 
+#include <dirent.h>
+#include <unistd.h>
+
 #include <sstream>
 #include <fstream>
 #include <cstring>
 #include <iostream>
 #include <iomanip>
-#include <dirent.h>
-#include <unistd.h>
 
 #include "helper_functions.h"
 
@@ -44,8 +45,7 @@ RunningProcess::~RunningProcess() {
     QTreeWidgetItem *parent = tree_item_->parent();
     if (parent != NULL) {
       parent->removeChild(tree_item_);
-    }
-    else {
+    } else {
       tree_item_->setHidden(true);
     }
   }
@@ -90,7 +90,7 @@ int RunningProcess::get_uid(bool real) {
   std::istringstream ss(uid_fields);
   int uid;
   ss >> uid;
-  if (!real) { // effective uid instead of real
+  if (!real) {  // effective uid instead of real
     ss >> uid;
   }
   if (ss.fail()) {
@@ -101,7 +101,6 @@ int RunningProcess::get_uid(bool real) {
 
 
 std::string RunningProcess::get_user() {
-  
   int uid = get_uid();
   return uid_to_name(uid);
 }
@@ -115,7 +114,8 @@ std::string RunningProcess::get_status() {
     return "---";
   }
 
-  return state.substr(1, state.length() - 2); //remove parentheses from the state
+  // remove parentheses from the state
+  return state.substr(1, state.length() - 2);
 }
 
 
@@ -124,16 +124,17 @@ std::vector<file_info> RunningProcess::get_files() {
   std::string path = "/proc/" + std::to_string(this->pid) + "/fd";
   DIR *dir = opendir(path.c_str());
   if (dir == NULL) {
-    //TODO- better handle the case where we don't have permission
-    //to open /proc/<pid>/fd
-    return answer; //return an empty list?
+    // TODO(sam): better handle the case where we don't have permission
+    // to open /proc/<pid>/fd
+    return answer;  // return an empty list?
   }
   struct dirent *ent;
   while ((ent = readdir(dir)) != NULL) {
     if (is_number(ent->d_name)) {
       std::string fd_path = path + "/" + ent->d_name;
       std::string buffer(128, '\0');
-      int bytes_read = readlink(fd_path.c_str(), &buffer[0], buffer.capacity() - 1);
+      int bytes_read = readlink(fd_path.c_str(), &buffer[0],
+        buffer.capacity() - 1);
       if (bytes_read > 0) {
         buffer[bytes_read] = '\0';
       }
@@ -144,8 +145,7 @@ std::vector<file_info> RunningProcess::get_files() {
       const char *socket = std::strstr(buffer.c_str(), "socket");
       if (socket) {
         info.type = "socket";
-      }
-      else {
+      } else {
         const char *pipe = std::strstr(buffer.c_str(), "pipe");
         if (pipe) {
           info.type = "pipe";
@@ -153,7 +153,6 @@ std::vector<file_info> RunningProcess::get_files() {
       }
       answer.push_back(info);
     }
-    
   }
   closedir(dir);
 
@@ -197,8 +196,6 @@ void RunningProcess::update_qtree_item() {
   tree_item_->setText(2, QString(get_cpu_percent().c_str()));
   tree_item_->setText(3, QString(std::to_string(pid).c_str()));
   tree_item_->setText(4, get_memory().c_str());
-
-  //tree_item_->setD
 }
 
 QTreeWidgetItem *RunningProcess::get_qtree_item() {
@@ -214,7 +211,6 @@ QTreeWidget *RunningProcess::get_detailed_view() {
   header_labels.push_back(QString("Property"));
   header_labels.push_back(QString("Value"));
   tree->setHeaderLabels(header_labels);
-  
 
   std::vector<std::string> keys;
   std::vector<std::string> vals;
@@ -250,12 +246,11 @@ QTreeWidget *RunningProcess::get_detailed_view() {
     QStringList fields;
     fields.push_back(QString(keys.at(i).c_str()));
     fields.push_back(QString(vals.at(i).c_str()));
-    QTreeWidgetItem *item = new QTreeWidgetItem((QTreeWidget *)0, fields);
+    QTreeWidgetItem *item = new QTreeWidgetItem(
+      static_cast<QTreeWidget *>(0), fields);
     tree->addTopLevelItem(item);
   }
-  //name, user, state, memory, virtual memory, resident memory,
-  //shared memory, CPU time, date/time started
-  
+
   return tree;
 }
 
@@ -321,7 +316,7 @@ std::string RunningProcess::get_virtual_memory() {
 }
 
 long int RunningProcess::get_cpu_time_seconds() {
-  //sum of stime and utime from /proc/[pid]/stat
+  // sum of stime and utime from /proc/[pid]/stat
   std::ifstream in("/proc/" + std::to_string(pid) + "/stat");
   if (!in) {
     return -1;
@@ -381,18 +376,18 @@ std::string RunningProcess::get_cpu_percent() {
   }
   uptime_in.close();
   uptime *= num_cpus();
-  double percent = 100 * ((double) seconds_running) / uptime;
+  double percent = 100 * (static_cast<double>(seconds_running)) / uptime;
 
   percent *= 1000;
-  percent = ((int) percent);
+  percent = (static_cast<int>(percent));
   percent /= 1000;
   std::ostringstream oss;
   oss << std::setprecision(5) << percent << "%";
   return oss.str();
-  //return std::to_string(percent) + "%";
 }
 
-std::string RunningProcess::calc_vm_size(std::string vm_start, std::string vm_end) {
+std::string RunningProcess::calc_vm_size(std::string vm_start,
+  std::string vm_end) {
   unsigned long long start_num, end_num;
   std::stringstream converter;
   converter << std::hex << vm_start;
@@ -409,7 +404,8 @@ std::string RunningProcess::calc_vm_size(std::string vm_start, std::string vm_en
     vm_size_num /= 1024;
     i++;
   }
-  std::string vm_size = std::to_string((int) vm_size_num) + suffixes[i];
+  std::string vm_size = std::to_string(static_cast<int>(vm_size_num)) +
+    suffixes[i];
   return vm_size;
 }
 
@@ -451,19 +447,16 @@ QList<QTreeWidgetItem *> RunningProcess::get_map_items() {
       stream >> label;
       if (label.compare("Shared_Clean:") == 0) {
         shared_clean = trim(line1.substr(strlen("Shared_Clean:")));
-        to_find--;     
-      }
-      else if (label.compare("Shared_Dirty:") == 0) {
+        to_find--;
+      } else if (label.compare("Shared_Dirty:") == 0) {
         shared_dirty = trim(line1.substr(strlen("Shared_Dirty:")));
-        to_find--;           
-      }
-      else if (label.compare("Private_Clean:") == 0) {
+        to_find--;
+      } else if (label.compare("Private_Clean:") == 0) {
         priv_clean = trim(line1.substr(strlen("Private_Clean:")));
-        to_find--;           
-      }
-      else if (label.compare("Private_Dirty:") == 0) {
+        to_find--;
+      } else if (label.compare("Private_Dirty:") == 0) {
         priv_dirty = trim(line1.substr(strlen("Private_Dirty:")));
-        to_find--;     
+        to_find--;
       }
     }
     fields.push_back(QString(priv_clean.c_str()));
@@ -474,7 +467,8 @@ QList<QTreeWidgetItem *> RunningProcess::get_map_items() {
     fields.push_back(QString(inode.c_str()));
 
 
-    QTreeWidgetItem *item = new QTreeWidgetItem((QTreeWidget *)0, fields);
+    QTreeWidgetItem *item = new QTreeWidgetItem(static_cast<QTreeWidget *>(0),
+      fields);
     answer.push_back(item);
   }
   in.close();

@@ -1,9 +1,9 @@
 #ifndef RUNNING_PROCESS_H_
 #define RUNNING_PROCESS_H_
 
+#include <QTreeWidget>
 #include <string>
 #include <vector>
-#include <QTreeWidget>
 
 typedef struct file_info {
   int fd;
@@ -12,8 +12,8 @@ typedef struct file_info {
 } file_info;
 
 class RunningProcess {
-  public:
-    RunningProcess(int pid); //specify parent/children in constructor?
+ public:
+    explicit RunningProcess(int pid);
     ~RunningProcess();
     bool hide;
     int pid;
@@ -43,9 +43,7 @@ class RunningProcess {
     QTreeWidget *get_detailed_view();
     QTreeWidget *get_mmap_tree();
 
-
-    
-  private:
+ private:
     int parent_pid_;
     int get_uid(bool real = true);
     std::string name_;
@@ -55,11 +53,10 @@ class RunningProcess {
     long int get_cpu_time_seconds();
     QList<QTreeWidgetItem *> get_map_items();
     std::string calc_vm_size(std::string, std::string);
-  protected:
+
+ protected:
     RunningProcess *parent_;
     QTreeWidgetItem *tree_item_;
-
-    
 };
 
-#endif
+#endif  // RUNNING_PROCESS_H_
