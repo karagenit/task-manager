@@ -344,12 +344,10 @@ void ProcessesTab::refresh() {
 }
 
 void ProcessesTab::handle_user_filter() {
-  auto i = proc_map_.begin();
   std::vector<RunningProcess *> matches;
-  while (i != proc_map_.end()) {
-    RunningProcess *proc = i->second;
+  for (auto i: proc_map_) {
+    RunningProcess *proc = i.second;
     if (proc == NULL) {
-      i++;
       continue;
     }
     bool hide = proc->get_user().compare(current_user()) != 0;
@@ -359,10 +357,8 @@ void ProcessesTab::handle_user_filter() {
     
     proc->get_qtree_item()->setHidden(hide);
     proc->hide = hide;
-    i++;
   }
 
-  //Todo- peek and only remove items that don't belong to the current user
   int approved = 0;
   while (approved < tree_widget_->topLevelItemCount()) {
     QTreeWidgetItem *i = tree_widget_->topLevelItem(0);
@@ -374,15 +370,13 @@ void ProcessesTab::handle_user_filter() {
     }
   }
 
-  auto j = matches.begin();
-  while (j != matches.end()) {
-    RunningProcess *proc = *j;
-
+  for (RunningProcess *proc : matches) {
     RunningProcess *parent = proc->get_parent();
     if (parent == NULL || parent->hide) {//get_qtree_item()->isHidden()) {
       if (!proc->hide) {
         if (parent) {
-          parent->get_qtree_item()->removeChild(proc->get_qtree_item());
+          parent->remove_child(proc);
+          //parent->get_qtree_item()->removeChild(proc->get_qtree_item());
         }
         int hmm = tree_widget_->indexOfTopLevelItem(proc->get_qtree_item());
         if (hmm < 0) {
@@ -390,7 +384,6 @@ void ProcessesTab::handle_user_filter() {
         }
       }
     }
-    j++;
   }
 }
 
@@ -423,7 +416,10 @@ void ProcessesTab::delete_proc(RunningProcess *proc) {
 }
 
 void ProcessesTab::restore_non_filtering() {
-  tree_widget_->clear();
+  // clear the tree_widget_ ui
+  while (tree_widget_->topLevelItemCount() > 0) {
+    tree_widget_->takeTopLevelItem(0);
+  }
 
   for (auto i : proc_map_) {
     delete_proc(i.second);

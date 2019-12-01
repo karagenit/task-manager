@@ -14,12 +14,15 @@ class MenuBar : public QMenuBar {
     QMenu *edit_menu_;
     QMenu *view_menu_;
     QMenu *help_menu_;
-    QAction *filter_action_;
+    QAction *all_procs_action_;
+    QAction *my_procs_action_;
     bool filtering_ = false;
     void set_filter_icon();
     ProcessesTab *procs_tab_;
   public slots:
-    void handle_filter_clicked();
+    void my_procs_clicked();
+    void all_procs_clicked();
+
 };
 
 #endif
