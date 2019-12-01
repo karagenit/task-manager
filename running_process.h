@@ -47,8 +47,9 @@ class RunningProcess {
     int parent_pid_;
     int get_uid(bool real = true);
     std::string name_;
-    std::string popen_string(std::string);
+    std::string get_status_field(std::string);
     std::vector<RunningProcess *> children_;
+    unsigned long int get_boot_time();
   protected:
     RunningProcess *parent_;
     QTreeWidgetItem *tree_item_;

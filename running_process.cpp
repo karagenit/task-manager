@@ -67,28 +67,37 @@ void RunningProcess::remove_child(RunningProcess *child) {
   }
 }
 
+std::string RunningProcess::get_status_field(std::string field) {
+  std::ifstream in("/proc/" + std::to_string(pid) + "/status");
+  std::string line;
+  while (std::getline(in, line)) {
+    if (line.find(field) == 0) {
+      std::string answer = line.substr(field.length());
+      in.close();
+      return answer;
+    }
+  }
+  in.close();
+  return "---";
+}
+
 // get_uid() to get real uid
 // get_uid(false) to get effective uid
 
 int RunningProcess::get_uid(bool real) {
-  std::ifstream in("/proc/" + std::to_string(pid) + "/status");
-  std::string line;
-  while (std::getline(in, line)) {
-    if (line.find("Uid:") == 0) {
-      std::string uid_fields = line.substr(strlen("Uid:"));
-      std::stringstream ss(uid_fields);
-      int uid;
-      ss >> uid;
-      if (!real) { // effective uid instead of real
-        ss >> uid;
-      }
-      in.close();
-      return uid;
-    }
+  std::string uid_fields = get_status_field("Uid:");
+  std::istringstream ss(uid_fields);
+  int uid;
+  ss >> uid;
+  if (!real) { // effective uid instead of real
+    ss >> uid;
   }
-  in.close();
-  return -1;
+  if (ss.fail()) {
+    return -1;
+  }
+  return uid;
 }
+
 
 std::string RunningProcess::get_user() {
   
@@ -97,23 +106,15 @@ std::string RunningProcess::get_user() {
 }
 
 std::string RunningProcess::get_status() {
-  std::ifstream in("/proc/" + std::to_string(this->pid) + "/status");
-  if (!in) {
-    return "-";
+  std::string state_line = get_status_field("State:");
+  std::istringstream stream(state_line);
+  std::string state;
+  stream >> state >> state;
+  if (stream.fail()) {
+    return "---";
   }
-  std::string line;
-  while (std::getline(in, line)) {
-    std::istringstream stream(line);
-    std::string label;
-    stream >> label;
-    if (label.compare("State:") == 0) {
-      std::string state;
-      stream >> state >> state;
-      return state.substr(1, state.length() - 2);
-    }
-    
-  }
-  return "-";
+
+  return state.substr(1, state.length() - 2); //remove parentheses from the state
 }
 
 
@@ -273,31 +274,74 @@ QTreeWidget *RunningProcess::get_detailed_view() {
     QTreeWidgetItem *item = new QTreeWidgetItem((QTreeWidget *)0, fields);
     tree->addTopLevelItem(item);
   }
-
-
   //name, user, state, memory, virtual memory, resident memory,
   //shared memory, CPU time, date/time started
-
   
   return tree;
 }
 
+unsigned long int RunningProcess::get_boot_time() {
+  std::ifstream in("/proc/stat");
+  if (!in) {
+    return -1;
+  }
+  std::string line;
+  while (std::getline(in, line)) {
+    std::istringstream ss(line);
+    std::string label;
+    ss >> label;
+    if (label.compare("btime") == 0) {
+      unsigned long int answer;
+      ss >> answer;
+      in.close();
+      return answer;
+    }
+  }
+  in.close();
+  return -1;
+}
+
 std::string RunningProcess::get_start_datetime() {
-  return "---";
+  std::ifstream in("/proc/" + std::to_string(pid) + "/stat");
+  if (!in) {
+    return "---";
+  }
+  std::string junk;
+  for (int i = 0; i < 21; i++) {
+    in >> junk;
+  }
+  unsigned long long start_time;
+  in >> start_time;
+  if (in.fail()) {
+    return "---";
+  }
+  in.close();
+
+  // start_time represents the time after system boot that the process started
+  unsigned long int boot_time = get_boot_time();
+  // boot_time represents the seconds since the epoch when the system booted.
+  time_t real_time = boot_time + start_time / sysconf(_SC_CLK_TCK);
+  char buff[128];
+  ctime_r(&real_time, buff);
+  return trim(std::string(buff));
 }
 
 std::string RunningProcess::get_shared_memory() {
-  return "---";
+  std::string shared_line = get_status_field("RssShmem:");
+  return trim(shared_line);
 }
 
 std::string RunningProcess::get_resident_memory() {
-  return "---";
+  std::string res_line = get_status_field("VmRSS:");
+  return trim(res_line);
 }
 
 std::string RunningProcess::get_virtual_memory() {
-  return "---";
+  std::string virt_line = get_status_field("VmSize:");
+  return trim(virt_line);
 }
 
 std::string RunningProcess::get_cpu_time() {
+  //sum of stime and utime from /proc/[pid]/stat
   return "---";
 }
