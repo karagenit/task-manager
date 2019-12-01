@@ -3,14 +3,18 @@
 
 #include <QWidget>
 #include <map>
+#include <vector>
+#include <string>
 
-#include "running_process.h"
+#include "./running_process.h"
 
 class ProcessesTab : public QWidget {
   Q_OBJECT
-  public:
+
+ public:
     explicit ProcessesTab(QWidget *parent = nullptr);
-  private:
+
+ private:
     bool filtering_ = false;
     std::vector<RunningProcess *> get_root_processes();
     std::string expanded_name(RunningProcess *);
@@ -23,12 +27,11 @@ class ProcessesTab : public QWidget {
     void restore_non_filtering();
     void delete_proc(RunningProcess *);
 
-  signals:
+ signals:
 
-  public slots:
+ public slots:
     void handle_stop();
     void handle_continue();
-   // void handle_end();
     void handle_kill();
 
     void handle_properties();
@@ -38,8 +41,6 @@ class ProcessesTab : public QWidget {
     void handle_user_filter();
 
     void set_filtering(bool);
-
-
 };
 
-#endif
+#endif  // PROCESSES_TAB_H_

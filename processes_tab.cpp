@@ -1,24 +1,24 @@
-#include "processes_tab.h"
+#include "./processes_tab.h"
 
 #include <signal.h>
 #include <unistd.h>
 #include <sys/types.h>
-
-#include <QLabel>
-#include <QVBoxLayout>
-#include <vector>
-#include <string>
-#include <map>
-#include <iostream>
 #include <dirent.h>
 #include <QTreeWidget>
 #include <QAction>
 #include <QMenu>
 #include <QDialog>
 #include <QTimer>
+#include <QLabel>
+#include <QVBoxLayout>
+#include <vector>
+#include <string>
+#include <map>
+#include <iostream>
 
-#include "running_process.h"
-#include "helper_functions.h"
+
+#include "./running_process.h"
+#include "./helper_functions.h"
 
 QList<QTreeWidgetItem *> get_root_items(std::vector<RunningProcess *> procs) {
   QList<QTreeWidgetItem *> answer;
@@ -36,7 +36,7 @@ ProcessesTab::ProcessesTab(QWidget *parent) : QWidget(parent) {
   QObject::connect(timer, SIGNAL(timeout()), this, SLOT(refresh()));
   timer->start(1000);
 
-  
+
   std::vector<RunningProcess *> root_procs = ProcessesTab::get_root_processes();
 
   QVBoxLayout *layout = new QVBoxLayout;
@@ -59,7 +59,7 @@ std::vector<RunningProcess *> ProcessesTab::get_root_processes() {
   DIR *dir = opendir("/proc/");
   if (dir != NULL) {
     struct dirent *ent;
-    
+
     while ((ent = readdir(dir)) != NULL) {
       std::string proc_path = std::string("/proc/") + ent->d_name;
       if (is_number(ent->d_name)) {
@@ -81,8 +81,7 @@ std::vector<RunningProcess *> ProcessesTab::get_root_processes() {
     if (proc_map_.find(parent_pid) != proc_map_.end()) {
       RunningProcess *parent = proc_map_[parent_pid];
       parent->add_child(proc);
-    }
-    else {
+    } else {
       tree_roots.push_back(proc);
     }
     i++;
@@ -114,7 +113,7 @@ void ProcessesTab::prepare_menu(const QPoint &pos) {
 
 
   QAction *stop_act = new QAction(tr("Stop Process"), this);
-  
+
   int pid = item->text(3).toInt();
   QVariant qv_pid = qVariantFromValue(pid);
   stop_act->setData(qv_pid);
@@ -169,8 +168,7 @@ void ProcessesTab::handle_stop() {
   int status = kill(pid, SIGSTOP);
   if (status == 0) {
     std::cout << "success\n";
-  }
-  else {
+  } else {
     std::cout << "failed\n";
   }
 }
@@ -181,8 +179,7 @@ void ProcessesTab::handle_continue() {
   int status = kill(pid, SIGCONT);
   if (status == 0) {
     std::cout << "success\n";
-  }
-  else {
+  } else {
     std::cout << "failed\n";
   }
 }
@@ -193,8 +190,7 @@ void ProcessesTab::handle_kill() {
   int status = kill(pid, SIGKILL);
   if (status == 0) {
     std::cout << "success\n";
-  }
-  else {
+  } else {
     std::cout << "failed\n";
   }
 }
@@ -241,10 +237,11 @@ void ProcessesTab::handle_fd_window() {
     file_info info = *i;
 
     QStringList fields;
-    fields.push_back(QString(std::to_string(info.fd).c_str())); //fd
-    fields.push_back(QString(info.type.c_str())); //type
-    fields.push_back(QString(info.object.c_str())); // object
-    QTreeWidgetItem *item = new QTreeWidgetItem((QTreeWidget *)0, fields);
+    fields.push_back(QString(std::to_string(info.fd).c_str()));  // fd
+    fields.push_back(QString(info.type.c_str()));  // type
+    fields.push_back(QString(info.object.c_str()));  // object
+    QTreeWidgetItem *item = new QTreeWidgetItem(static_cast<QTreeWidget *>(0),
+      fields);
     tree->addTopLevelItem(item);
 
     i++;
@@ -278,14 +275,15 @@ std::string ProcessesTab::expanded_name(RunningProcess *proc) {
   if (proc == NULL) {
     return "NULL";
   }
-  return "process \"" + proc->get_name() + "\" (PID " + std::to_string(proc->pid) + ")";
+  return "process \"" + proc->get_name() + "\" (PID " +
+    std::to_string(proc->pid) + ")";
 }
 
 void ProcessesTab::refresh() {
   DIR *dir = opendir("/proc/");
   if (dir != NULL) {
     struct dirent *ent;
-    
+
     // update all processes' listings and create new ones if needed.
     while ((ent = readdir(dir)) != NULL) {
       if (is_number(ent->d_name)) {
@@ -293,8 +291,7 @@ void ProcessesTab::refresh() {
         if (proc_map_[pid] == NULL) {
           RunningProcess *proc = new RunningProcess(pid);
           proc_map_[pid] = proc;
-        }
-        else {
+        } else {
           proc_map_[pid]->update_qtree_item();
         }
       }
@@ -302,7 +299,7 @@ void ProcessesTab::refresh() {
     closedir(dir);
   }
 
-  //update the parent (if needed) of all processes
+  // update the parent (if needed) of all processes
   auto i = proc_map_.begin();
   while (i != proc_map_.end()) {
     RunningProcess *proc = i->second;
@@ -312,9 +309,8 @@ void ProcessesTab::refresh() {
     }
     int parent_pid = proc->get_parent_pid();
 
-    if (proc->get_parent() == NULL || 
+    if (proc->get_parent() == NULL ||
         parent_pid != proc->get_parent()->pid) {
-
       if (proc->get_parent() != NULL) {
         proc->get_parent()->remove_child(proc);
       }
@@ -350,7 +346,7 @@ void ProcessesTab::refresh() {
 
 void ProcessesTab::handle_user_filter() {
   std::vector<RunningProcess *> matches;
-  for (auto i: proc_map_) {
+  for (auto i : proc_map_) {
     RunningProcess *proc = i.second;
     if (proc == NULL) {
       continue;
@@ -359,7 +355,7 @@ void ProcessesTab::handle_user_filter() {
     if (!hide) {
       matches.push_back(proc);
     }
-    
+
     proc->get_qtree_item()->setHidden(hide);
     proc->hide = hide;
   }
@@ -369,19 +365,17 @@ void ProcessesTab::handle_user_filter() {
     QTreeWidgetItem *i = tree_widget_->topLevelItem(0);
     if (i->isHidden()) {
       tree_widget_->takeTopLevelItem(0);
-    }
-    else {
+    } else {
       approved++;
     }
   }
 
   for (RunningProcess *proc : matches) {
     RunningProcess *parent = proc->get_parent();
-    if (parent == NULL || parent->hide) {//get_qtree_item()->isHidden()) {
+    if (parent == NULL || parent->hide) {
       if (!proc->hide) {
         if (parent) {
           parent->remove_child(proc);
-          //parent->get_qtree_item()->removeChild(proc->get_qtree_item());
         }
         int hmm = tree_widget_->indexOfTopLevelItem(proc->get_qtree_item());
         if (hmm < 0) {
@@ -400,8 +394,7 @@ void ProcessesTab::set_filtering(bool val) {
   filtering_ = val;
   if (filtering_ == false) {
     restore_non_filtering();
-  }
-  else {
+  } else {
     handle_user_filter();
   }
 }
@@ -431,7 +424,7 @@ void ProcessesTab::restore_non_filtering() {
   }
 
   proc_map_.clear();
-  
+
   std::vector<RunningProcess *> root_procs = ProcessesTab::get_root_processes();
   QList<QTreeWidgetItem *> root_items = get_root_items(root_procs);
   tree_widget_->insertTopLevelItems(0, root_items);
