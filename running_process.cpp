@@ -48,6 +48,7 @@ RunningProcess::~RunningProcess() {
     } else {
       tree_item_->setHidden(true);
     }
+    delete tree_item_;
   }
 }
 
