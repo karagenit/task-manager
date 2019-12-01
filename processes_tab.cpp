@@ -201,7 +201,7 @@ void ProcessesTab::handle_properties() {
 
   QDialog popup(this);
   QVBoxLayout layout;
-  std::string title = "Properties of process " + expanded_name(proc) + ":";
+  std::string title = "Properties of " + expanded_name(proc) + ":";
   QLabel title_label(tr(title.c_str()));
   layout.addWidget(&title_label);
 
@@ -260,7 +260,7 @@ void ProcessesTab::handle_mmap_window() {
 
   QDialog popup(this);
   QVBoxLayout layout;
-  std::string title = "Memory maps for process " + expanded_name(proc) + ":";
+  std::string title = "Memory maps for " + expanded_name(proc) + ":";
   QLabel title_label(tr(title.c_str()));
   layout.addWidget(&title_label);
 
