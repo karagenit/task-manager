@@ -32,8 +32,6 @@ RunningProcess::RunningProcess(int pid) {
   in >> parent_pid_string >> parent_pid_string;
   this->parent_pid_ = std::stoi(parent_pid_string);
 
-  //std::cout << "parent_pid_: " << parent_pid_ << "\n";
-
   update_qtree_item();
 
 
@@ -43,7 +41,7 @@ RunningProcess::RunningProcess(int pid) {
 RunningProcess::~RunningProcess() {
   if (tree_item_) {
     QTreeWidgetItem *parent = tree_item_->parent();
-    if (parent) {
+    if (parent != NULL) {
       parent->removeChild(tree_item_);
     }
     else {
@@ -62,7 +60,6 @@ void RunningProcess::remove_child(RunningProcess *child) {
     if (p == child) {
       children_.erase(i);
       tree_item_->removeChild(child->tree_item_);
-
       child->parent_ = NULL;
       return;
     }

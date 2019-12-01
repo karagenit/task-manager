@@ -2,7 +2,8 @@
 
 #include <iostream>
 
-MenuBar::MenuBar() {
+MenuBar::MenuBar(ProcessesTab *procs_tab) {
+  procs_tab_ = procs_tab;
   moni_menu_ = this->addMenu("Monitor");
   edit_menu_ = this->addMenu("Edit");
   view_menu_ = this->addMenu("View");
@@ -17,7 +18,10 @@ MenuBar::MenuBar() {
 void MenuBar::set_filter_icon() {
   const char *icon = filtering_ ? "icons/check.svg" : "icons/empty_check.svg";
   filter_action_->setIcon(QIcon(icon));
-  
+  //procs_tab_->set_filtering(filtering_);
+
+  QMetaObject::invokeMethod(procs_tab_, "set_filtering", Qt::QueuedConnection,
+    Q_ARG(bool, filtering_));
 }
 
 void MenuBar::handle_filter_clicked() {

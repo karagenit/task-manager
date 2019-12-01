@@ -11,6 +11,7 @@ class ProcessesTab : public QWidget {
   public:
     explicit ProcessesTab(QWidget *parent = nullptr);
   private:
+    bool filtering_ = false;
     std::vector<RunningProcess *> get_root_processes();
     std::string expanded_name(RunningProcess *);
     QTreeWidget *tree_widget();
@@ -19,6 +20,8 @@ class ProcessesTab : public QWidget {
     int get_sender_pid();
     std::map<int, RunningProcess *> proc_map_;
     std::string current_user();
+    void restore_non_filtering();
+    void delete_proc(RunningProcess *);
 
   signals:
 
@@ -33,6 +36,9 @@ class ProcessesTab : public QWidget {
     void handle_mmap_window();
     void refresh();
     void handle_user_filter();
+
+    void set_filtering(bool);
+
 
 };
 

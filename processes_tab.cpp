@@ -333,20 +333,14 @@ void ProcessesTab::refresh() {
     std::string path = "/proc/" + std::to_string(proc->pid);
     int valid = access(path.c_str(), F_OK);
     if (valid != 0) {
-      for (RunningProcess *child : proc->get_children()) {
-        proc->remove_child(child);
-      }
-      
-      RunningProcess *parent = proc->get_parent();
-      if (parent) {
-        parent->remove_child(proc);
-      }
-      delete proc;
+      delete_proc(proc);
       proc_map_.erase(i->first);
     }
     i++;
   }
-  handle_user_filter();
+  if (filtering_) {
+    handle_user_filter();
+  }
 }
 
 void ProcessesTab::handle_user_filter() {
@@ -360,7 +354,6 @@ void ProcessesTab::handle_user_filter() {
     }
     bool hide = proc->get_user().compare(current_user()) != 0;
     if (!hide) {
-      //std::cout << "shouldn't hide " << proc->get_user() << "\n";
       matches.push_back(proc);
     }
     
@@ -380,7 +373,6 @@ void ProcessesTab::handle_user_filter() {
       approved++;
     }
   }
-  //while (tree_widget_->takeTopLevelItem(0));
 
   auto j = matches.begin();
   while (j != matches.end()) {
@@ -393,7 +385,6 @@ void ProcessesTab::handle_user_filter() {
           parent->get_qtree_item()->removeChild(proc->get_qtree_item());
         }
         int hmm = tree_widget_->indexOfTopLevelItem(proc->get_qtree_item());
-        //std::cout << hmm << "\n";
         if (hmm < 0) {
           tree_widget_->addTopLevelItem(proc->get_qtree_item());
         }
@@ -405,4 +396,42 @@ void ProcessesTab::handle_user_filter() {
 
 std::string ProcessesTab::current_user() {
   return uid_to_name(geteuid());
+}
+
+void ProcessesTab::set_filtering(bool val) {
+  filtering_ = val;
+  if (filtering_ == false) {
+    restore_non_filtering();
+  }
+  else {
+    handle_user_filter();
+  }
+}
+
+void ProcessesTab::delete_proc(RunningProcess *proc) {
+  if (proc == NULL) {
+    return;
+  }
+  if (proc->get_parent()) {
+    proc->get_parent()->remove_child(proc);
+  }
+  std::vector<RunningProcess *> children = proc->get_children();
+  for (RunningProcess *child : children) {
+    proc->remove_child(child);
+  }
+  delete proc;
+}
+
+void ProcessesTab::restore_non_filtering() {
+  tree_widget_->clear();
+
+  for (auto i : proc_map_) {
+    delete_proc(i.second);
+  }
+
+  proc_map_.clear();
+  
+  std::vector<RunningProcess *> root_procs = ProcessesTab::get_root_processes();
+  QList<QTreeWidgetItem *> root_items = get_root_items(root_procs);
+  tree_widget_->insertTopLevelItems(0, root_items);
 }
