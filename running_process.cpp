@@ -159,27 +159,9 @@ std::vector<file_info> RunningProcess::get_files() {
   return answer;
 }
 
-// Returns the Proportional Set Size from /proc/<pid>/smaps_rollup
 std::string RunningProcess::get_memory() {
-  std::ifstream in("/proc/" + std::to_string(this->pid) + "/smaps_rollup");
-  if (!in) {
-    return "---";
-  }
-  std::string line;
-  while (std::getline(in, line)) {
-    std::istringstream stream(line);
-    std::string type;
-    stream >> type;
-    if (type.compare("Pss:") == 0) {
-      std::string amount;
-      std::string unit;
-      stream >> amount >> unit;
-      in.close();
-      return amount + " " + unit;
-    }
-  }
-  in.close();
-  return "---";
+  std::string mem_line = get_status_field("RssAnon:");
+  return trim(mem_line);
 }
 
 void RunningProcess::add_child(RunningProcess *child) {
@@ -343,5 +325,20 @@ std::string RunningProcess::get_virtual_memory() {
 
 std::string RunningProcess::get_cpu_time() {
   //sum of stime and utime from /proc/[pid]/stat
-  return "---";
+  std::ifstream in("/proc/" + std::to_string(pid) + "/stat");
+  if (!in) {
+    return "---";
+  }
+  std::string junk;
+  for (int i = 0; i < 15; i++) {
+    in >> junk;
+  }
+  long int buff;
+  long int answer = 0;
+  for (int i = 0; i < 2; i++) {
+    in >> buff;
+    answer += buff;
+  }
+  in.close();
+  return std::to_string(answer) + std::string(" seconds");
 }
