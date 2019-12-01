@@ -440,6 +440,13 @@ QList<QTreeWidgetItem *> RunningProcess::get_map_items() {
     fields.push_back(QString(vm_size.c_str()));
     fields.push_back(QString(flags.c_str()));
     fields.push_back(QString(offset.c_str()));
+    fields.push_back(QString("---"));
+    fields.push_back(QString("---"));
+    fields.push_back(QString("---"));
+    fields.push_back(QString("---"));
+    fields.push_back(QString(device.c_str()));
+    fields.push_back(QString(inode.c_str()));
+
 
     QTreeWidgetItem *item = new QTreeWidgetItem((QTreeWidget *)0, fields);
     answer.push_back(item);
@@ -460,6 +467,12 @@ QTreeWidget *RunningProcess::get_mmap_tree() {
   header_labels.push_back(QString("VM Size"));
   header_labels.push_back(QString("Flags"));
   header_labels.push_back(QString("VM Offset"));
+  header_labels.push_back(QString("Private clean"));
+  header_labels.push_back(QString("Private dirty"));
+  header_labels.push_back(QString("Shared clean"));
+  header_labels.push_back(QString("Shared dirty"));
+  header_labels.push_back(QString("Device"));
+  header_labels.push_back(QString("Inode"));
 
   mmap_tree->setHeaderLabels(header_labels);
 
