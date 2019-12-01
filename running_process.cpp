@@ -1,4 +1,4 @@
-#include "running_process.h"
+#include "./running_process.h"
 
 #include <dirent.h>
 #include <unistd.h>
@@ -9,7 +9,7 @@
 #include <iostream>
 #include <iomanip>
 
-#include "helper_functions.h"
+#include "./helper_functions.h"
 
 RunningProcess::RunningProcess(int pid) {
   // set pid
