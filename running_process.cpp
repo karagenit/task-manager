@@ -392,6 +392,27 @@ std::string RunningProcess::get_cpu_percent() {
   //return std::to_string(percent) + "%";
 }
 
+std::string RunningProcess::calc_vm_size(std::string vm_start, std::string vm_end) {
+  unsigned long long start_num, end_num;
+  std::stringstream converter;
+  converter << std::hex << vm_start;
+  converter >> start_num;
+  converter.clear();
+  converter << vm_end;
+  converter >> end_num;
+
+  double vm_size_num = end_num - start_num;
+
+  const char *suffixes[] = {" B", " kiB", " MiB", " GiB", " TB"};
+  unsigned int i = 0;
+  while (i < sizeof(suffixes) / sizeof(char *) - 1 && vm_size_num > 1024) {
+    vm_size_num /= 1024;
+    i++;
+  }
+  std::string vm_size = std::to_string((int) vm_size_num) + suffixes[i];
+  return vm_size;
+}
+
 QList<QTreeWidgetItem *> RunningProcess::get_map_items() {
   QList<QTreeWidgetItem *> answer;
   std::ifstream in("/proc/" + std::to_string(pid) + "/maps");
@@ -411,25 +432,7 @@ QList<QTreeWidgetItem *> RunningProcess::get_map_items() {
     }
     std::string vm_start = ranges.substr(0, ranges.find("-"));
     std::string vm_end = ranges.substr(ranges.find("-") + 1);
-
-    unsigned long long start_num, end_num;
-    std::stringstream converter;
-    converter << std::hex << vm_start;
-    converter >> start_num;
-    converter.clear();
-    converter << vm_end;
-    converter >> end_num;
-
-    double vm_size_num = end_num - start_num;
-
-    const char *suffixes[] = {" B", " kiB", " MiB", " GiB", " TB"};
-    unsigned int i = 0;
-    while (i < sizeof(suffixes) / sizeof(char *) - 1 && vm_size_num > 1024) {
-      vm_size_num /= 1024;
-      i++;
-    }
-    std::string vm_size = std::to_string((int) vm_size_num) + suffixes[i];
-
+    std::string vm_size = calc_vm_size(vm_start, vm_end);
     QStringList fields;
     fields.push_back(QString(name.c_str()));
     fields.push_back(QString(vm_start.c_str()));

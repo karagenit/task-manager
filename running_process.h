@@ -54,6 +54,7 @@ class RunningProcess {
     unsigned long int get_boot_time();
     long int get_cpu_time_seconds();
     QList<QTreeWidgetItem *> get_map_items();
+    std::string calc_vm_size(std::string, std::string);
   protected:
     RunningProcess *parent_;
     QTreeWidgetItem *tree_item_;
