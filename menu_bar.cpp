@@ -21,8 +21,8 @@ MenuBar::MenuBar(ProcessesTab *procs_tab) {
 }
 
 void MenuBar::set_filter_icon() {
-  const char *my_procs_icon = filtering_ ? "icons/check.svg" : "icons/empty_check.svg";
-  const char *all_procs_icon = !filtering_ ? "icons/check.svg" : "icons/empty_check.svg";
+  const char *my_procs_icon = filtering_ ? "icons/radio_button_checked.svg" : "icons/radio_button_unchecked.svg";
+  const char *all_procs_icon = !filtering_ ? "icons/radio_button_checked.svg" : "icons/radio_button_unchecked.svg";
 
   my_procs_action_->setIcon(QIcon(my_procs_icon));
   all_procs_action_->setIcon(QIcon(all_procs_icon));
