@@ -19,7 +19,7 @@ testall: $(TESTS)
 task_monitor: builds/main.o builds/systemtab.o builds/resourcestab.o\
 	builds/moc_systemtab.o builds/moc_resourcestab.o builds/moc_file_system_tab.o\
 	builds/file_system_tab.o builds/moc_processes_tab.o builds/processes_tab.o\
-	builds/menu_bar.o builds/running_process.o builds/helper_functions.o
+	builds/moc_menu_bar.o builds/menu_bar.o builds/running_process.o builds/helper_functions.o
 	$(LINK) -o $@ $^ $(QTLIBS)
 
 .PHONY: clean
@@ -58,6 +58,11 @@ builds/main.o: main.cpp systemtab.h resourcestab.h file_system_tab.h processes_t
 	menu_bar.h
 	@mkdir -p builds
 	@$(BUILD) $(FLAGS) -c $(QTINCLUDES) main.cpp -o $@
+
+builds/moc_menu_bar.o: menu_bar.h
+	@mkdir -p builds
+	@$(MOC) $(QTINCLUDES) -I./builds/qt $< -o builds/moc_menu_bar.cc
+	@$(BUILD) $(FLAGS) $(QTINCLUDES) builds/moc_menu_bar.cc -c -o $@
 
 builds/moc_systemtab.o: systemtab.h
 	@mkdir -p builds

@@ -3,6 +3,8 @@
 #include <QMenuBar>
 
 class MenuBar : public QMenuBar {
+  Q_OBJECT
+
   public:
     MenuBar();
   private:
@@ -10,6 +12,11 @@ class MenuBar : public QMenuBar {
     QMenu *edit_menu_;
     QMenu *view_menu_;
     QMenu *help_menu_;
+    QAction *filter_action_;
+    bool filtering_ = false;
+    void set_filter_icon();
+  public slots:
+    void handle_filter_clicked();
 };
 
 #endif
