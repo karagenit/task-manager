@@ -323,7 +323,7 @@ long int RunningProcess::get_cpu_time_seconds() {
     return -1;
   }
   std::string junk;
-  for (int i = 0; i < 15; i++) {
+  for (int i = 0; i < 13; i++) {
     in >> junk;
   }
   long int buff;
@@ -336,7 +336,7 @@ long int RunningProcess::get_cpu_time_seconds() {
     answer = -1;
   }
   in.close();
-  return answer;
+  return answer / sysconf(_SC_CLK_TCK);
 }
 std::string RunningProcess::get_cpu_time() {
   long int seconds = get_cpu_time_seconds();
@@ -365,6 +365,7 @@ int num_cpus() {
 
 std::string RunningProcess::get_cpu_percent() {
   long int seconds_running = get_cpu_time_seconds();
+
   std::ifstream uptime_in("/proc/uptime");
   if (!uptime_in) {
     return "0%";
