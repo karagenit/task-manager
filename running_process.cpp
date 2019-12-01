@@ -391,3 +391,76 @@ std::string RunningProcess::get_cpu_percent() {
   return oss.str();
   //return std::to_string(percent) + "%";
 }
+
+QList<QTreeWidgetItem *> RunningProcess::get_map_items() {
+  QList<QTreeWidgetItem *> answer;
+  std::ifstream in("/proc/" + std::to_string(pid) + "/maps");
+  if (!in) {
+    return answer;
+  }
+  std::string line;
+  while (getline(in, line)) {
+    std::string ranges, flags, offset, device, inode, name;
+    std::istringstream ss(line);
+    ss >> ranges >> flags >> offset >> device >> inode >> name;
+    if (ss.fail()) {
+      continue;
+    }
+    if (ranges.find("-") == std::string::npos) {
+      continue;
+    }
+    std::string vm_start = ranges.substr(0, ranges.find("-"));
+    std::string vm_end = ranges.substr(ranges.find("-") + 1);
+
+    unsigned long long start_num, end_num;
+    std::stringstream converter;
+    converter << std::hex << vm_start;
+    converter >> start_num;
+    converter.clear();
+    converter << vm_end;
+    converter >> end_num;
+
+    double vm_size_num = end_num - start_num;
+
+    const char *suffixes[] = {" B", " kiB", " MiB", " GiB", " TB"};
+    unsigned int i = 0;
+    while (i < sizeof(suffixes) / sizeof(char *) - 1 && vm_size_num > 1024) {
+      vm_size_num /= 1024;
+      i++;
+    }
+    std::string vm_size = std::to_string((int) vm_size_num) + suffixes[i];
+
+    QStringList fields;
+    fields.push_back(QString(name.c_str()));
+    fields.push_back(QString(vm_start.c_str()));
+    fields.push_back(QString(vm_end.c_str()));
+    fields.push_back(QString(vm_size.c_str()));
+    fields.push_back(QString(flags.c_str()));
+    fields.push_back(QString(offset.c_str()));
+
+    QTreeWidgetItem *item = new QTreeWidgetItem((QTreeWidget *)0, fields);
+    answer.push_back(item);
+  }
+  in.close();
+  return answer;
+}
+
+QTreeWidget *RunningProcess::get_mmap_tree() {
+  QTreeWidget *mmap_tree = new QTreeWidget;
+
+  mmap_tree->setColumnCount(6);
+
+  QStringList header_labels;
+  header_labels.push_back(QString("Filename"));
+  header_labels.push_back(QString("VM Start"));
+  header_labels.push_back(QString("VM End"));
+  header_labels.push_back(QString("VM Size"));
+  header_labels.push_back(QString("Flags"));
+  header_labels.push_back(QString("VM Offset"));
+
+  mmap_tree->setHeaderLabels(header_labels);
+
+  QList<QTreeWidgetItem *> maps = get_map_items();
+  mmap_tree->addTopLevelItems(maps);
+  return mmap_tree;
+}

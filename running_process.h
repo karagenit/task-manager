@@ -41,6 +41,8 @@ class RunningProcess {
     QTreeWidgetItem *get_qtree_item();
     void update_qtree_item();
     QTreeWidget *get_detailed_view();
+    QTreeWidget *get_mmap_tree();
+
 
     
   private:
@@ -51,6 +53,7 @@ class RunningProcess {
     std::vector<RunningProcess *> children_;
     unsigned long int get_boot_time();
     long int get_cpu_time_seconds();
+    QList<QTreeWidgetItem *> get_map_items();
   protected:
     RunningProcess *parent_;
     QTreeWidgetItem *tree_item_;

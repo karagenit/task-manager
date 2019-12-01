@@ -259,12 +259,17 @@ void ProcessesTab::handle_fd_window() {
 
 void ProcessesTab::handle_mmap_window() {
   int pid = get_sender_pid();
+  RunningProcess *proc = proc_map_[pid];
 
   QDialog popup(this);
   QVBoxLayout layout;
-  std::string title = "Memory maps for process " + std::to_string(pid);
+  std::string title = "Memory maps for process " + expanded_name(proc) + ":";
   QLabel title_label(tr(title.c_str()));
   layout.addWidget(&title_label);
+
+  QTreeWidget *tree = proc->get_mmap_tree();
+  layout.addWidget(tree);
+
   popup.setLayout(&layout);
   popup.exec();
 }
