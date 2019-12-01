@@ -415,18 +415,19 @@ std::string RunningProcess::calc_vm_size(std::string vm_start, std::string vm_en
 
 QList<QTreeWidgetItem *> RunningProcess::get_map_items() {
   QList<QTreeWidgetItem *> answer;
-  std::ifstream in("/proc/" + std::to_string(pid) + "/maps");
+  std::ifstream in("/proc/" + std::to_string(pid) + "/smaps");
   if (!in) {
     return answer;
   }
   std::string line;
   while (getline(in, line)) {
     std::string ranges, flags, offset, device, inode, name;
+    device = "---";
+    name = "---";
+    inode = "---";
     std::istringstream ss(line);
     ss >> ranges >> flags >> offset >> device >> inode >> name;
-    if (ss.fail()) {
-      continue;
-    }
+
     if (ranges.find("-") == std::string::npos) {
       continue;
     }
@@ -440,10 +441,35 @@ QList<QTreeWidgetItem *> RunningProcess::get_map_items() {
     fields.push_back(QString(vm_size.c_str()));
     fields.push_back(QString(flags.c_str()));
     fields.push_back(QString(offset.c_str()));
-    fields.push_back(QString("---"));
-    fields.push_back(QString("---"));
-    fields.push_back(QString("---"));
-    fields.push_back(QString("---"));
+
+    std::string shared_clean, shared_dirty, priv_clean, priv_dirty = "---";
+    std::string line1;
+    int to_find = 4;
+    while (to_find > 0 && std::getline(in, line1)) {
+      std::istringstream stream(line1);
+      std::string label;
+      stream >> label;
+      if (label.compare("Shared_Clean:") == 0) {
+        shared_clean = trim(line1.substr(strlen("Shared_Clean:")));
+        to_find--;     
+      }
+      else if (label.compare("Shared_Dirty:") == 0) {
+        shared_dirty = trim(line1.substr(strlen("Shared_Dirty:")));
+        to_find--;           
+      }
+      else if (label.compare("Private_Clean:") == 0) {
+        priv_clean = trim(line1.substr(strlen("Private_Clean:")));
+        to_find--;           
+      }
+      else if (label.compare("Private_Dirty:") == 0) {
+        priv_dirty = trim(line1.substr(strlen("Private_Dirty:")));
+        to_find--;     
+      }
+    }
+    fields.push_back(QString(priv_clean.c_str()));
+    fields.push_back(QString(priv_dirty.c_str()));
+    fields.push_back(QString(shared_clean.c_str()));
+    fields.push_back(QString(shared_dirty.c_str()));
     fields.push_back(QString(device.c_str()));
     fields.push_back(QString(inode.c_str()));
 
