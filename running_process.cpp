@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cstring>
 #include <iostream>
+#include <iomanip>
 #include <dirent.h>
 #include <unistd.h>
 
@@ -190,10 +191,6 @@ std::string RunningProcess::get_name() {
   return name_;
 }
 
-std::string RunningProcess::get_cpu_percent() {
-  return std::string("XX");
-}
-
 void RunningProcess::update_qtree_item() {
   tree_item_->setText(0, QString(name_.c_str()));
   tree_item_->setText(1, QString(get_status().c_str()));
@@ -323,11 +320,11 @@ std::string RunningProcess::get_virtual_memory() {
   return trim(virt_line);
 }
 
-std::string RunningProcess::get_cpu_time() {
+long int RunningProcess::get_cpu_time_seconds() {
   //sum of stime and utime from /proc/[pid]/stat
   std::ifstream in("/proc/" + std::to_string(pid) + "/stat");
   if (!in) {
-    return "---";
+    return -1;
   }
   std::string junk;
   for (int i = 0; i < 15; i++) {
@@ -339,6 +336,58 @@ std::string RunningProcess::get_cpu_time() {
     in >> buff;
     answer += buff;
   }
+  if (in.fail()) {
+    answer = -1;
+  }
   in.close();
-  return std::to_string(answer) + std::string(" seconds");
+  return answer;
+}
+std::string RunningProcess::get_cpu_time() {
+  long int seconds = get_cpu_time_seconds();
+  if (seconds == -1) {
+    return "---";
+  }
+  return std::to_string(seconds) + std::string(" seconds");
+}
+
+int num_cpus() {
+  std::ifstream in("/proc/cpuinfo");
+  if (!in) {
+    return 1;
+  }
+
+  int answer = 0;
+  std::string line;
+  while (std::getline(in, line)) {
+    if (line.find("processor") == 0) {
+      answer += 1;
+    }
+  }
+  in.close();
+  return answer;
+}
+
+std::string RunningProcess::get_cpu_percent() {
+  long int seconds_running = get_cpu_time_seconds();
+  std::ifstream uptime_in("/proc/uptime");
+  if (!uptime_in) {
+    return "0%";
+  }
+  double uptime;
+  uptime_in >> uptime;
+  if (uptime_in.fail()) {
+    return "0%";
+    uptime_in.close();
+  }
+  uptime_in.close();
+  uptime *= num_cpus();
+  double percent = 100 * ((double) seconds_running) / uptime;
+
+  percent *= 1000;
+  percent = ((int) percent);
+  percent /= 1000;
+  std::ostringstream oss;
+  oss << std::setprecision(5) << percent << "%";
+  return oss.str();
+  //return std::to_string(percent) + "%";
 }

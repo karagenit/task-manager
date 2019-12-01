@@ -50,6 +50,7 @@ class RunningProcess {
     std::string get_status_field(std::string);
     std::vector<RunningProcess *> children_;
     unsigned long int get_boot_time();
+    long int get_cpu_time_seconds();
   protected:
     RunningProcess *parent_;
     QTreeWidgetItem *tree_item_;
