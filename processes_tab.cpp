@@ -78,7 +78,7 @@ std::vector<RunningProcess *> ProcessesTab::get_root_processes() {
   while (i != answer.end()) {
     RunningProcess *proc = *i;
     int parent_pid = proc->get_parent_pid();
-    if (proc_map_.find(parent_pid) != proc_map_.end()) {
+    if (dependencies_ && proc_map_.find(parent_pid) != proc_map_.end()) {
       RunningProcess *parent = proc_map_[parent_pid];
       parent->add_child(proc);
     } else {
@@ -210,6 +210,7 @@ void ProcessesTab::handle_properties() {
 
   popup.setLayout(&layout);
   popup.exec();
+  delete tree;
 }
 
 void ProcessesTab::handle_fd_window() {
@@ -252,6 +253,7 @@ void ProcessesTab::handle_fd_window() {
 
   popup.setLayout(&layout);
   popup.exec();
+  delete tree;
 }
 
 void ProcessesTab::handle_mmap_window() {
@@ -269,6 +271,7 @@ void ProcessesTab::handle_mmap_window() {
 
   popup.setLayout(&layout);
   popup.exec();
+  delete tree;
 }
 
 std::string ProcessesTab::expanded_name(RunningProcess *proc) {
@@ -300,11 +303,9 @@ void ProcessesTab::refresh() {
   }
 
   // update the parent (if needed) of all processes
-  auto i = proc_map_.begin();
-  while (i != proc_map_.end()) {
-    RunningProcess *proc = i->second;
+  for (auto i : proc_map_) {
+    RunningProcess *proc = i.second;
     if (proc == NULL) {
-      i++;
       continue;
     }
     int parent_pid = proc->get_parent_pid();
@@ -319,13 +320,11 @@ void ProcessesTab::refresh() {
         parent->add_child(proc);
       }
     }
-    i++;
   }
 
   // remove dead processes from the ui
 
-  i = proc_map_.begin();
-  while (i != proc_map_.end()) {
+  for (auto i = proc_map_.cbegin(); i != proc_map_.cend(); ) {
     RunningProcess *proc = i->second;
     if (proc == NULL) {
       i++;
@@ -335,9 +334,10 @@ void ProcessesTab::refresh() {
     int valid = access(path.c_str(), F_OK);
     if (valid != 0) {
       delete_proc(proc);
-      proc_map_.erase(i->first);
+      proc_map_.erase(i++);
+    } else {
+      i++;
     }
-    i++;
   }
   if (filtering_) {
     handle_user_filter();
@@ -395,6 +395,17 @@ void ProcessesTab::set_filtering(bool val) {
   if (filtering_ == false) {
     restore_non_filtering();
   } else {
+    handle_user_filter();
+  }
+}
+
+void ProcessesTab::set_show_dependencies(bool val) {
+  if (dependencies_ == val) {
+    return;
+  }
+  dependencies_ = val;
+  restore_non_filtering();  // rebuild the entire tree
+  if (filtering_) {
     handle_user_filter();
   }
 }

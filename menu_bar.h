@@ -17,12 +17,16 @@ class MenuBar : public QMenuBar {
     QMenu *help_menu_;
     QAction *all_procs_action_;
     QAction *my_procs_action_;
+    QAction *dependencies_action_;
     bool filtering_ = false;
+    bool show_dependencies_ = true;
     void set_filter_icon();
+    void set_dependencies_icon();
     ProcessesTab *procs_tab_;
  public slots:
     void my_procs_clicked();
     void all_procs_clicked();
+    void dependencies_clicked();
 };
 
 #endif  // MENU_BAR_H_
