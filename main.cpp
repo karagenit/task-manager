@@ -2,14 +2,13 @@
 #include <QPushButton>
 #include <QTabWidget>
 
-#include "systemtab.h"
-#include "resourcestab.h"
-#include "file_system_tab.h"
-#include "processes_tab.h"
-#include "menu_bar.h"
+#include "./systemtab.h"
+#include "./resourcestab.h"
+#include "./file_system_tab.h"
+#include "./processes_tab.h"
+#include "./menu_bar.h"
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     QApplication app(argc, argv);
     QRect rec = app.desktop()->screenGeometry();
     QMainWindow *main_window = new QMainWindow;
@@ -24,6 +23,6 @@ int main(int argc, char **argv)
     main_window->setMenuBar(new MenuBar(procs_tab));
 
     main_window->show();
-    //tabs->show();
+    // tabs->show();
     return app.exec();
 }
