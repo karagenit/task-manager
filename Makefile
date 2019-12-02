@@ -23,17 +23,12 @@ testall: $(TESTS)
 task_monitor: builds/main.o builds/systemtab.o builds/resourcestab.o\
 	builds/moc_systemtab.o builds/moc_resourcestab.o builds/moc_file_system_tab.o\
 	builds/file_system_tab.o builds/moc_processes_tab.o builds/processes_tab.o\
-	builds/menu_bar.o
+	builds/moc_menu_bar.o builds/menu_bar.o builds/running_process.o builds/helper_functions.o
 	$(LINK) -o $@ $^ $(QTLIBS) $(LIBS)
 
-.PHONY: clean commit
+.PHONY: clean
 clean:
 	@rm -rf builds
-
-commit:
-	git add .
-	git commit
-	git push
 
 builds/test_trim: builds/helper_functions.o builds/tests/test_trim.o
 	@printf "\033[32mBuilding: "
@@ -49,6 +44,12 @@ builds/helper_functions.o: helper_functions.cpp helper_functions.h
 	@mkdir -p builds
 	@$(BUILD) $(FLAGS) -c -o $@ helper_functions.cpp
 
+builds/running_process.o: running_process.cpp running_process.h
+	@printf "\033[32mBuilding: "
+	@printf $@
+	@printf "\033[0m\n"
+	@mkdir -p builds
+	@$(BUILD) $(FLAGS) -c $(QTINCLUDES) -o $@ running_process.cpp
 
 builds/tests/test_trim.o: tests/test_trim.cpp helper_functions.h
 	@printf "\033[32mBuilding: "
@@ -68,6 +69,11 @@ builds/main.o: main.cpp systemtab.h resourcestab.h file_system_tab.h processes_t
 	menu_bar.h
 	@mkdir -p builds
 	@$(BUILD) $(FLAGS) -c $(QTINCLUDES) main.cpp -o $@
+
+builds/moc_menu_bar.o: menu_bar.h
+	@mkdir -p builds
+	@$(MOC) $(QTINCLUDES) -I./builds/qt $< -o builds/moc_menu_bar.cc
+	@$(BUILD) $(FLAGS) $(QTINCLUDES) builds/moc_menu_bar.cc -c -o $@
 
 builds/moc_systemtab.o: systemtab.h
 	@mkdir -p builds
@@ -96,6 +102,10 @@ builds/systemtab.o: systemtab.cpp systemtab.h
 builds/resourcestab.o: resourcestab.cpp resourcestab.h
 	@mkdir -p builds
 	@$(BUILD) $(FLAGS) -c $(QTINCLUDES) resourcestab.cpp -o $@
+
+builds/systemtab.o: systemtab.cpp systemtab.h
+	@mkdir -p builds
+	@$(BUILD) $(FLAGS) -c $(QTINCLUDES) systemtab.cpp -o $@
 
 builds/file_system_tab.o: file_system_tab.cpp file_system_tab.h
 	@mkdir -p builds

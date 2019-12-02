@@ -18,9 +18,10 @@ int main(int argc, char **argv)
     tabs->addTab(new SystemTab, "System Info");
     tabs->addTab(new ResourcesTab, "Resources");
     tabs->addTab(new FileSystemTab, "File System");
-    tabs->addTab(new ProcessesTab, "Processes");
+    ProcessesTab *procs_tab = new ProcessesTab;
+    tabs->addTab(procs_tab, "Processes");
     main_window->setCentralWidget(tabs);
-    main_window->setMenuBar(new MenuBar);
+    main_window->setMenuBar(new MenuBar(procs_tab));
 
     main_window->show();
     //tabs->show();
