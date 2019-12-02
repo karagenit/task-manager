@@ -1,10 +1,10 @@
-TESTS=builds/test_trim
+TESTS=builds/test_trim builds/test_file_system
 
 ARGS=-Wall -Werror -std=c++17
 
 BUILD=g++
 DEFINES=-DQT_CHARTS_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
-FLAGS=-Wall -std=c++17 -fPIC $(DEFINES) -pipe
+FLAGS=-std=c++17 -Wall -fPIC $(DEFINES) -pipe
 BUILD=g++
 QT_BASE=/usr/include/x86_64-linux-gnu/qt5
 QTLIBS=-lQt5Core -lQt5Gui -lQt5Widgets -lQt5Gui -lQt5Charts -lGL -lpthread
@@ -23,7 +23,8 @@ testall: $(TESTS)
 task_monitor: builds/main.o builds/systemtab.o builds/resourcestab.o\
 	builds/moc_systemtab.o builds/moc_resourcestab.o builds/moc_file_system_tab.o\
 	builds/file_system_tab.o builds/moc_processes_tab.o builds/processes_tab.o\
-	builds/moc_menu_bar.o builds/menu_bar.o builds/running_process.o builds/helper_functions.o
+	builds/moc_menu_bar.o builds/menu_bar.o builds/running_process.o builds/helper_functions.o\
+	builds/file_system.o
 	$(LINK) -o $@ $^ $(QTLIBS) $(LIBS)
 
 .PHONY: clean
@@ -36,6 +37,13 @@ builds/test_trim: builds/helper_functions.o builds/tests/test_trim.o
 	@printf "\033[0m\n"
 	@mkdir -p builds
 	@$(BUILD) $(FLAGS) -o $@ $^
+
+builds/test_file_system: builds/file_system.o builds/tests/test_file_system.o
+	@printf "\033[32mBuilding: "
+	@printf $@
+	@printf "\033[0m\n"
+	@mkdir -p builds
+	@$(LINK) -o $@ $^ $(LIBS)
 
 builds/helper_functions.o: helper_functions.cpp helper_functions.h
 	@printf "\033[32mBuilding: "
@@ -58,12 +66,12 @@ builds/tests/test_trim.o: tests/test_trim.cpp helper_functions.h
 	@mkdir -p builds/tests
 	@$(BUILD) $(ARGS) -c -o $@ tests/test_trim.cpp
 
-builds/file-system/file_system.o: file-system/file_system.cpp file-system/file_system.h
+builds/file_system.o: file_system.cpp file_system.h
 	@printf "\033[32mBuilding: "
 	@printf $@
 	@printf "\033[0m\n"
 	@mkdir -p builds/file-system
-	@$(BUILD) $(ARGS) -c -o $@ file-system/file_system.cpp
+	@$(BUILD) $(ARGS) -c -o $@ file_system.cpp
 
 builds/main.o: main.cpp systemtab.h resourcestab.h file_system_tab.h processes_tab.h\
 	menu_bar.h
@@ -103,10 +111,6 @@ builds/resourcestab.o: resourcestab.cpp resourcestab.h
 	@mkdir -p builds
 	@$(BUILD) $(FLAGS) -c $(QTINCLUDES) resourcestab.cpp -o $@
 
-builds/systemtab.o: systemtab.cpp systemtab.h
-	@mkdir -p builds
-	@$(BUILD) $(FLAGS) -c $(QTINCLUDES) systemtab.cpp -o $@
-
 builds/file_system_tab.o: file_system_tab.cpp file_system_tab.h
 	@mkdir -p builds
 	@$(BUILD) $(FLAGS) -c $(QTINCLUDES) $< -o $@
@@ -119,3 +123,9 @@ builds/menu_bar.o: menu_bar.cpp menu_bar.h
 	@mkdir -p builds
 	@$(BUILD) $(FLAGS) -c $(QTINCLUDES) $< -o $@
 
+builds/tests/test_file_system.o: tests/test_file_system.cpp file_system.h
+	@printf "\033[32mBuilding: "
+	@printf $@
+	@printf "\033[0m\n"
+	@mkdir -p builds/tests
+	@$(BUILD) $(ARGS) -c -o $@ tests/test_file_system.cpp
