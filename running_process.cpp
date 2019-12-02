@@ -56,16 +56,17 @@ void RunningProcess::remove_child(RunningProcess *child) {
   if (child == NULL) {
     return;
   }
-  auto i = children_.begin();
-  while (i != children_.end()) {
+  auto i = children_.cbegin();
+  while (i != children_.cend()) {
     RunningProcess *p = *i;
     if (p == child) {
-      children_.erase(i);
+      children_.erase(i++);
       tree_item_->removeChild(child->tree_item_);
       child->parent_ = NULL;
       return;
+    } else {
+      i++;
     }
-    i++;
   }
 }
 

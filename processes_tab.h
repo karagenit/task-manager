@@ -16,6 +16,7 @@ class ProcessesTab : public QWidget {
 
  private:
     bool filtering_ = false;
+    bool dependencies_ = true;
     std::vector<RunningProcess *> get_root_processes();
     std::string expanded_name(RunningProcess *);
     QTreeWidget *tree_widget();
@@ -41,6 +42,7 @@ class ProcessesTab : public QWidget {
     void handle_user_filter();
 
     void set_filtering(bool);
+    void set_show_dependencies(bool);
 };
 
 #endif  // PROCESSES_TAB_H_
