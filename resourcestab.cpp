@@ -178,10 +178,24 @@ int ResourcesTab::get_network_transmit() {
 }
 
 int ResourcesTab::get_network_receive() {
-    int recvBytes = stoi(popen_string("tail -n +3 /proc/net/dev | awk '{SUM += $2} END {print SUM}'"));
-    int bytesDiff = recvBytes - lastReceiveCount;
-    lastReceiveCount = recvBytes;
-    return bytesDiff;
+    std::ifstream net_dev("/proc/net/dev");
+    std::string name;
+    long receive_sum = 0;
+    long r;
+
+    // Skip two header lines
+    std::getline(net_dev, name);
+    std::getline(net_dev, name);
+
+    while (net_dev >> name >> r) {
+        // TODO: only if matching eth* ?
+        receive_sum += r;
+        std::getline(net_dev, name);
+    }
+
+    int diff = receive_sum - lastReceiveCount;
+    lastReceiveCount = receive_sum;
+    return diff;
 }
 
 std::string ResourcesTab::popen_string(std::string cmd) {
