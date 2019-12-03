@@ -1,4 +1,4 @@
-#include "./running_process.h"
+#include "running_process.h"
 
 #include <dirent.h>
 #include <unistd.h>
@@ -9,7 +9,7 @@
 #include <iostream>
 #include <iomanip>
 
-#include "./helper_functions.h"
+#include "helper_functions.h"
 
 RunningProcess::RunningProcess(int pid) {
   // set pid
@@ -27,6 +27,11 @@ RunningProcess::RunningProcess(int pid) {
   }
   std::string name;
   in >> name >> name;
+  while (*(name.end() - 1) != ')') {
+    std::string temp;
+    in >> temp;
+    name = name + " " + temp;
+  }
   // discard parentheses from process name
   this->name_ = name.substr(1, name.length() - 2);
 

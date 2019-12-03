@@ -1,29 +1,29 @@
 TESTS=builds/test_trim builds/test_file_system
 
-ARGS=-Wall -Werror -std=c++17
+ARGS=-Wall -Werror
 
 BUILD=g++
 DEFINES=-DQT_CHARTS_LIB -DQT_WIDGETS_LIB -DQT_GUI_LIB -DQT_CORE_LIB
-FLAGS=-std=c++17 -Wall -fPIC $(DEFINES) -pipe
+FLAGS=-std=c++17 -Wall -fPIC $(DEFINES) -pipe -g
 BUILD=g++
 QT_BASE=/usr/include/x86_64-linux-gnu/qt5
 QTLIBS=-lQt5Core -lQt5Gui -lQt5Widgets -lQt5Gui -lQt5Charts -lGL -lpthread
-LIBS=-lstdc++fs
+LIBS=
 QTINCLUDES=-I$(QT_BASE) -I$(QT_BASE)/QtCharts -I$(QT_BASE)/QtWidgets -I$(QT_BASE)/QtGui -I$(QT_BASE)/QtCore -I/usr/include/libdrm
-LFLAGS=-Wall -Werror
+LFLAGS=-Wall -Werror -g
 
 LINK=$(BUILD) $(LFLAGS)
 MOC=moc
 
-all: testall task_monitor
+all: tests task_monitor
 
-testall: $(TESTS)
-	$(foreach test, $^, ./$(test))
+tests: $(TESTS)
 
-task_monitor: builds/main.o builds/systemtab.o builds/resourcestab.o\
-	builds/moc_systemtab.o builds/moc_resourcestab.o builds/moc_file_system_tab.o\
-	builds/file_system_tab.o builds/moc_processes_tab.o builds/processes_tab.o\
-	builds/moc_menu_bar.o builds/menu_bar.o builds/running_process.o builds/helper_functions.o\
+
+task_monitor: builds/main.o builds/systemtab.o builds/resourcestab.o \
+	builds/moc_systemtab.o builds/moc_resourcestab.o builds/moc_file_system_tab.o \
+	builds/file_system_tab.o builds/moc_processes_tab.o builds/processes_tab.o \
+	builds/moc_menu_bar.o builds/menu_bar.o builds/running_process.o builds/helper_functions.o \
 	builds/file_system.o
 	$(LINK) -o $@ $^ $(QTLIBS) $(LIBS)
 

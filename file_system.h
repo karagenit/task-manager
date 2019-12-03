@@ -15,15 +15,17 @@ class FileSystemEntry {
     std::string GetFree();
     std::string GetAvailable();
     std::string GetUsed();
+    unsigned long UsedValue();
+    unsigned long TotalValue();
     void UpdateFileSystemEntry();
   private:
   std::string device_;
   std::string directory_;
   std::string type_;
-  unsigned int total_;
-  unsigned int free_;
-  unsigned int available_;
-  unsigned int used_;
+  unsigned long total_;
+  unsigned long free_;
+  unsigned long available_;
+  unsigned long used_;
 };
 
 std::vector<FileSystemEntry> read_file_system_entries();

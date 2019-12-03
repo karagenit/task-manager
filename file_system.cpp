@@ -1,9 +1,11 @@
 #include "file_system.h"
-#include <experimental/filesystem>
 #include <fstream>
-#include <iostream>
+#include <algorithm>
+#include <sys/statvfs.h>
+#include <sys/types.h>
 
-namespace fs = std::experimental::filesystem;
+#include "helper_functions.h"
+
 
 #define MOUNTS_FILE ("/proc/mounts")
 #define PARTITIONS_FILE ("/proc/partitions")
@@ -20,11 +22,14 @@ FileSystemEntry::FileSystemEntry(string device, string directory, string type) :
   UpdateFileSystemEntry();
 }
 void FileSystemEntry::UpdateFileSystemEntry() {
-  fs::space_info space = fs::space(directory_);
-  total_ = space.capacity;
-  free_ = space.free;
-  available_ = space.available;
-  used_ = space.capacity - space.free;
+  struct statvfs vfs;
+  if (statvfs(directory_.c_str(), &vfs)) {
+    throw exception();
+  }
+  total_ = vfs.f_blocks * vfs.f_bsize;
+  free_ = vfs.f_bfree * vfs.f_bsize;
+  available_ = vfs.f_bavail * vfs.f_bsize;
+  used_ = total_ - free_;
 }
 
 FileSystemEntry::~FileSystemEntry() {
@@ -40,20 +45,38 @@ std::string FileSystemEntry::GetType() {
   return type_;
 }
 std::string FileSystemEntry::GetTotal() {
-  return to_string(total_);
+  return humanize(total_);
 }
 std::string FileSystemEntry::GetFree() {
-  return to_string(free_);
+  return humanize(free_);
 }
 std::string FileSystemEntry::GetAvailable() {
-  return to_string(available_);
+  return humanize(available_);
 }
 std::string FileSystemEntry::GetUsed() {
-  return to_string(used_);
+  return humanize(used_);
+}
+unsigned long FileSystemEntry::UsedValue() {
+  return used_;
+}
+unsigned long FileSystemEntry::TotalValue() {
+  return total_;
 }
 
 vector<FileSystemEntry> read_file_system_entries() {
   vector<FileSystemEntry> out;
+
+  vector<string> partitions;
+  ifstream partitions_stream(PARTITIONS_FILE);
+  string line;
+  getline(partitions_stream, line);
+  getline(partitions_stream, line);
+  while (!partitions_stream.eof()) {
+    string dev_name;
+    partitions_stream >> dev_name >> dev_name >> dev_name >> dev_name;
+    partitions.push_back("/dev/" + dev_name);
+  }
+  partitions_stream.close();
 
   ifstream mounts_stream(MOUNTS_FILE);
   while (!mounts_stream.eof()) {
@@ -61,17 +84,22 @@ vector<FileSystemEntry> read_file_system_entries() {
     string directory;
     string type;
     mounts_stream >> device >> directory >> type;
-    try {
-      FileSystemEntry entry(device, directory, type);
-      out.push_back(entry);
-    }
-    catch (exception &ex) {
-      cerr << ex.what() << endl;
+    auto it = find(partitions.begin(), partitions.end(), device);
+    if (it != partitions.end()) {
+      try {
+        FileSystemEntry entry(device, directory, type);
+        out.push_back(entry);
+      }
+      catch (exception &ex) {
+        //cerr << ex.what() << endl;
+      }
     }
 
     string temp;
     getline(mounts_stream, temp);
   }
+
+  mounts_stream.close();
 
   return out;
 }
