@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QTimer>
 #include <QtCharts>
+#include <fstream>
 
 #include <unistd.h>
 

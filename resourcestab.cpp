@@ -93,10 +93,12 @@ void ResourcesTab::updateGraphs() {
 }
 
 double ResourcesTab::get_used_cpu() {
-    std::string idle = popen_string("cat /proc/stat | head -n 1 | awk '{print $5}'");
-    std::string used = popen_string("cat /proc/stat | head -n 1 | awk '{print ($2+$4)}'");
-    int idleCount = stoi(idle, nullptr);
-    int usedCount = stoi(used, nullptr);
+    std::ifstream proc_stat("/proc/stat");
+    std::string cpu;
+    int userCount, niceCount, systemCount, idleCount;
+    proc_stat >> cpu >> userCount >> niceCount >> systemCount >> idleCount;
+    proc_stat.close();
+    int usedCount = userCount + systemCount;
     int idleTicks = idleCount - lastIdleCount;
     int usedTicks = usedCount - lastUsedCount;
     double usedPercent = 100.0 * usedTicks / (usedTicks + idleTicks);
