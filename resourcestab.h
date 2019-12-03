@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QTimer>
 #include <QtCharts>
+#include <fstream>
 
 #include <unistd.h>
 
@@ -20,11 +21,14 @@ public:
     explicit ResourcesTab(QWidget *parent = nullptr);
     double get_used_cpu();
     int get_used_memory();
+    int get_free_memory();
     int get_total_memory();
     int get_used_swap();
+    int get_total_swap();
+    int get_free_swap();
+    int get_max_mem_swap();
     int get_network_transmit();
     int get_network_receive();
-    std::string popen_string(std::string cmd);
 
 signals:
 
@@ -50,8 +54,9 @@ private:
     QChartView *networkChartView;
     QLineSeries *networkTransmitSeries;
     QLineSeries *networkReceiveSeries;
-    int lastTransmitCount;
-    int lastReceiveCount;
+    long lastTransmitCount;
+    long lastReceiveCount;
+    int maxNetworkValue;
 };
 
 #endif // RESOURCESTAB_H

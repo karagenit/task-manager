@@ -32,8 +32,7 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     memoryChart->addSeries(swapSeries);
     memoryChart->createDefaultAxes();
     memoryChart->axisX()->hide();
-    // TODO: what if swap > ram?
-    memoryChart->axisY()->setRange(0, get_total_memory());
+    memoryChart->axisY()->setRange(0, get_max_mem_swap());
     memoryChart->setTitle("Memory Usage");
     memoryChartView = new QChartView(memoryChart);
     memoryChartView->setRenderHint(QPainter::Antialiasing);
@@ -48,7 +47,6 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     networkChart->addSeries(networkTransmitSeries);
     networkChart->createDefaultAxes();
     networkChart->axisX()->hide();
-    // TODO: big enough? autoscale?
     networkChart->axisY()->setRange(0, 100000);
     networkChart->setTitle("Network Usage");
     networkChartView = new QChartView(networkChart);
@@ -66,6 +64,7 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     lastUsedCount = 0;
     lastReceiveCount = 0;
     lastTransmitCount = 0;
+    maxNetworkValue = 100000;
 
     // We call these once so the various lastCounts
     // are set properly.
@@ -84,19 +83,26 @@ void ResourcesTab::updateGraphs() {
     memoryChart->axisX()->setRange(timeCount - MEM_GRAPH_RANGE, timeCount);
     memoryChartView->repaint();
 
-    networkTransmitSeries->append(timeCount, get_network_transmit());
-    networkReceiveSeries->append(timeCount, get_network_receive());
+    int transmit = get_network_transmit();
+    int receive = get_network_receive();
+    networkTransmitSeries->append(timeCount, transmit);
+    networkReceiveSeries->append(timeCount, receive);
+    maxNetworkValue = std::max(maxNetworkValue, transmit);
+    maxNetworkValue = std::max(maxNetworkValue, receive);
     networkChart->axisX()->setRange(timeCount - NET_GRAPH_RANGE, timeCount);
+    networkChart->axisY()->setRange(0, maxNetworkValue);
     networkChartView->repaint();
 
     timeCount++;
 }
 
 double ResourcesTab::get_used_cpu() {
-    std::string idle = popen_string("cat /proc/stat | head -n 1 | awk '{print $5}'");
-    std::string used = popen_string("cat /proc/stat | head -n 1 | awk '{print ($2+$4)}'");
-    int idleCount = stoi(idle, nullptr);
-    int usedCount = stoi(used, nullptr);
+    std::ifstream proc_stat("/proc/stat");
+    std::string cpu;
+    int userCount, niceCount, systemCount, idleCount;
+    proc_stat >> cpu >> userCount >> niceCount >> systemCount >> idleCount;
+    proc_stat.close();
+    int usedCount = userCount + systemCount;
     int idleTicks = idleCount - lastIdleCount;
     int usedTicks = usedCount - lastUsedCount;
     double usedPercent = 100.0 * usedTicks / (usedTicks + idleTicks);
@@ -106,40 +112,93 @@ double ResourcesTab::get_used_cpu() {
 }
 
 int ResourcesTab::get_used_memory() {
-    return stoi(popen_string("free -m | grep 'Mem:' | awk '{print $3}'"));
+    return get_total_memory() - get_free_memory();
+}
+
+int ResourcesTab::get_free_memory() {
+    std::ifstream meminfo("/proc/meminfo");
+    std::string key, units;
+    int value;
+    meminfo >> key >> value >> units;
+    meminfo >> key >> value >> units;
+    meminfo >> key >> value >> units;
+    return value;
 }
 
 int ResourcesTab::get_total_memory() {
-    return stoi(popen_string("free -m | grep 'Mem:' | awk '{print $2}'"));
+    std::ifstream meminfo("/proc/meminfo");
+    std::string key, units;
+    int value;
+    meminfo >> key >> value >> units;
+    return value;
+}
+
+int ResourcesTab::get_total_swap() {
+    std::ifstream meminfo("/proc/meminfo");
+    std::string key, units;
+    int value;
+    for (int i = 0; i < 15; i++) {
+        meminfo >> key >> value >> units;
+    }
+    return value;
 }
 
 int ResourcesTab::get_used_swap() {
-    return stoi(popen_string("free -m | grep 'Swap:' | awk '{print $3}'"));
+    return get_total_swap() - get_free_swap();
+}
+
+int ResourcesTab::get_free_swap() {
+    std::ifstream meminfo("/proc/meminfo");
+    std::string key, units;
+    int value;
+    for (int i = 0; i < 16; i++) {
+        meminfo >> key >> value >> units;
+    }
+    return value;
+}
+
+int ResourcesTab::get_max_mem_swap() {
+    return std::max(get_total_memory(), get_total_swap());
 }
 
 int ResourcesTab::get_network_transmit() {
-    int transBytes = stoi(popen_string("tail -n +3 /proc/net/dev | awk '{SUM += $10} END {print SUM}'"));
-    int bytesDiff = transBytes - lastTransmitCount;
-    lastTransmitCount = transBytes;
-    return bytesDiff;
+    std::ifstream net_dev("/proc/net/dev");
+    std::string name;
+    long transmit_sum = 0;
+    long t;
+
+    // Skip two header lines
+    std::getline(net_dev, name);
+    std::getline(net_dev, name);
+
+    while (net_dev >> name >> t >> t >> t >> t >> t >> t >> t >> t >> t) {
+        // TODO: only if matching eth* ?
+        transmit_sum += t;
+        std::getline(net_dev, name);
+    }
+
+    int diff = transmit_sum - lastTransmitCount;
+    lastTransmitCount = transmit_sum;
+    return diff;
 }
 
 int ResourcesTab::get_network_receive() {
-    int recvBytes = stoi(popen_string("tail -n +3 /proc/net/dev | awk '{SUM += $2} END {print SUM}'"));
-    int bytesDiff = recvBytes - lastReceiveCount;
-    lastReceiveCount = recvBytes;
-    return bytesDiff;
-}
+    std::ifstream net_dev("/proc/net/dev");
+    std::string name;
+    long receive_sum = 0;
+    long r;
 
-std::string ResourcesTab::popen_string(std::string cmd) {
-  std::string answer;
-  FILE *fp = popen(cmd.c_str(), "r");
-  char buffer[1024];
-  while (!feof(fp)) {
-    if (fgets(buffer, 1024, fp)) {
-      answer.append(buffer);
+    // Skip two header lines
+    std::getline(net_dev, name);
+    std::getline(net_dev, name);
+
+    while (net_dev >> name >> r) {
+        // TODO: only if matching eth* ?
+        receive_sum += r;
+        std::getline(net_dev, name);
     }
-  }
-  pclose(fp);
-  return answer;
+
+    int diff = receive_sum - lastReceiveCount;
+    lastReceiveCount = receive_sum;
+    return diff;
 }
