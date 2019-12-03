@@ -149,7 +149,6 @@ int ResourcesTab::get_free_swap() {
     for (int i = 0; i < 16; i++) {
         meminfo >> key >> value >> units;
     }
-    qDebug() << value;
     return value;
 }
 
@@ -158,10 +157,24 @@ int ResourcesTab::get_max_mem_swap() {
 }
 
 int ResourcesTab::get_network_transmit() {
-    int transBytes = stoi(popen_string("tail -n +3 /proc/net/dev | awk '{SUM += $10} END {print SUM}'"));
-    int bytesDiff = transBytes - lastTransmitCount;
-    lastTransmitCount = transBytes;
-    return bytesDiff;
+    std::ifstream net_dev("/proc/net/dev");
+    std::string name;
+    long transmit_sum = 0;
+    long t;
+
+    // Skip two header lines
+    std::getline(net_dev, name);
+    std::getline(net_dev, name);
+
+    while (net_dev >> name >> t >> t >> t >> t >> t >> t >> t >> t >> t) {
+        // TODO: only if matching eth* ?
+        transmit_sum += t;
+        std::getline(net_dev, name);
+    }
+
+    int diff = transmit_sum - lastTransmitCount;
+    lastTransmitCount = transmit_sum;
+    return diff;
 }
 
 int ResourcesTab::get_network_receive() {

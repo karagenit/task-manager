@@ -55,8 +55,8 @@ private:
     QChartView *networkChartView;
     QLineSeries *networkTransmitSeries;
     QLineSeries *networkReceiveSeries;
-    int lastTransmitCount;
-    int lastReceiveCount;
+    long lastTransmitCount;
+    long lastReceiveCount;
 };
 
 #endif // RESOURCESTAB_H
