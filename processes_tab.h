@@ -2,6 +2,7 @@
 #define PROCESSES_TAB_H_
 
 #include <QWidget>
+#include <QLabel>
 #include <map>
 #include <vector>
 #include <string>
@@ -21,6 +22,8 @@ class ProcessesTab : public QWidget {
     std::string expanded_name(RunningProcess *);
     QTreeWidget *tree_widget();
     QTreeWidget *tree_widget_;
+    QLabel *load_label_;
+    void update_load_label();
     void prepare_menu(const QPoint &pos);
     int get_sender_pid();
     std::map<int, RunningProcess *> proc_map_;

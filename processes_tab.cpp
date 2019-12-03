@@ -14,6 +14,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <fstream>
 #include <iostream>
 
 
@@ -43,6 +44,10 @@ ProcessesTab::ProcessesTab(QWidget *parent) : QWidget(parent) {
   layout->setMargin(0);
   layout->setSpacing(0);
 
+  load_label_ = new QLabel;
+  update_load_label();
+  layout->addWidget(load_label_);
+
   QTreeWidget *tree = tree_widget();
   QList<QTreeWidgetItem *> items;
 
@@ -50,6 +55,23 @@ ProcessesTab::ProcessesTab(QWidget *parent) : QWidget(parent) {
   tree->insertTopLevelItems(0, root_items);
   layout->addWidget(tree);
   setLayout(layout);
+}
+
+void ProcessesTab::update_load_label() {
+  std::string text = "Load averages for the last 1, 5, 15 minutes: ";
+  std::ifstream in("/proc/loadavg");
+  if (in) {
+    std::string temp;
+    for (int i = 0; i < 3; i++) {
+      in >> temp;
+      text = text + temp;
+      if (i < 2) {
+        text = text + ", ";
+      }
+    }
+    in.close();
+  }
+  load_label_->setText(tr(text.c_str()));
 }
 
 std::vector<RunningProcess *> ProcessesTab::get_root_processes() {
@@ -283,6 +305,8 @@ std::string ProcessesTab::expanded_name(RunningProcess *proc) {
 }
 
 void ProcessesTab::refresh() {
+  update_load_label();
+
   DIR *dir = opendir("/proc/");
   if (dir != NULL) {
     struct dirent *ent;
