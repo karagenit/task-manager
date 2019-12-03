@@ -197,16 +197,3 @@ int ResourcesTab::get_network_receive() {
     lastReceiveCount = receive_sum;
     return diff;
 }
-
-std::string ResourcesTab::popen_string(std::string cmd) {
-  std::string answer;
-  FILE *fp = popen(cmd.c_str(), "r");
-  char buffer[1024];
-  while (!feof(fp)) {
-    if (fgets(buffer, 1024, fp)) {
-      answer.append(buffer);
-    }
-  }
-  pclose(fp);
-  return answer;
-}
