@@ -32,8 +32,7 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     memoryChart->addSeries(swapSeries);
     memoryChart->createDefaultAxes();
     memoryChart->axisX()->hide();
-    // TODO: what if swap > ram?
-    memoryChart->axisY()->setRange(0, get_total_memory());
+    memoryChart->axisY()->setRange(0, get_max_mem_swap());
     memoryChart->setTitle("Memory Usage");
     memoryChartView = new QChartView(memoryChart);
     memoryChartView->setRenderHint(QPainter::Antialiasing);
@@ -152,6 +151,10 @@ int ResourcesTab::get_free_swap() {
     }
     qDebug() << value;
     return value;
+}
+
+int ResourcesTab::get_max_mem_swap() {
+    return std::max(get_total_memory(), get_total_swap());
 }
 
 int ResourcesTab::get_network_transmit() {
