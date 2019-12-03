@@ -76,5 +76,8 @@ Thumbs.db
 builds/
 task_monitor
 
+.idea/
+compile_commands.json
+
 # VSCode Settings
 .vscode
