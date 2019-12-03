@@ -24,6 +24,8 @@ public:
     int get_free_memory();
     int get_total_memory();
     int get_used_swap();
+    int get_total_swap();
+    int get_free_swap();
     int get_network_transmit();
     int get_network_receive();
     std::string popen_string(std::string cmd);

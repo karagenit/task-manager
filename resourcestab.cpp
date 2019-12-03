@@ -126,12 +126,32 @@ int ResourcesTab::get_total_memory() {
     std::string key, units;
     int value;
     meminfo >> key >> value >> units;
-    qDebug() << value;
+    return value;
+}
+
+int ResourcesTab::get_total_swap() {
+    std::ifstream meminfo("/proc/meminfo");
+    std::string key, units;
+    int value;
+    for (int i = 0; i < 15; i++) {
+        meminfo >> key >> value >> units;
+    }
     return value;
 }
 
 int ResourcesTab::get_used_swap() {
-    return stoi(popen_string("free -m | grep 'Swap:' | awk '{print $3}'"));
+    return get_total_swap() - get_free_swap();
+}
+
+int ResourcesTab::get_free_swap() {
+    std::ifstream meminfo("/proc/meminfo");
+    std::string key, units;
+    int value;
+    for (int i = 0; i < 16; i++) {
+        meminfo >> key >> value >> units;
+    }
+    qDebug() << value;
+    return value;
 }
 
 int ResourcesTab::get_network_transmit() {
