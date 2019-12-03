@@ -25,9 +25,11 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     /* SETUP MEMORY CHART */
 
     memorySeries = new QLineSeries;
+    memorySeries->setName("RAM");
     swapSeries = new QLineSeries;
+    swapSeries->setName("Swap");
     memoryChart = new QChart;
-    memoryChart->legend()->hide();
+    memoryChart->legend()->setVisible(true);
     memoryChart->addSeries(memorySeries);
     memoryChart->addSeries(swapSeries);
     memoryChart->createDefaultAxes();
@@ -40,9 +42,11 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     /* SETUP NETWORK CHART */
 
     networkTransmitSeries = new QLineSeries;
+    networkTransmitSeries->setName("Transmit");
     networkReceiveSeries = new QLineSeries;
+    networkReceiveSeries->setName("Receive");
     networkChart = new QChart;
-    networkChart->legend()->hide();
+    networkChart->legend()->setVisible(true);
     networkChart->addSeries(networkReceiveSeries);
     networkChart->addSeries(networkTransmitSeries);
     networkChart->createDefaultAxes();
