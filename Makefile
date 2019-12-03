@@ -38,7 +38,7 @@ builds/test_trim: builds/helper_functions.o builds/tests/test_trim.o
 	@mkdir -p builds
 	@$(BUILD) $(FLAGS) -o $@ $^
 
-builds/test_file_system: builds/file_system.o builds/tests/test_file_system.o
+builds/test_file_system: builds/file_system.o builds/tests/test_file_system.o builds/helper_functions.o
 	@printf "\033[32mBuilding: "
 	@printf $@
 	@printf "\033[0m\n"
@@ -66,7 +66,7 @@ builds/tests/test_trim.o: tests/test_trim.cpp helper_functions.h
 	@mkdir -p builds/tests
 	@$(BUILD) $(ARGS) -c -o $@ tests/test_trim.cpp
 
-builds/file_system.o: file_system.cpp file_system.h
+builds/file_system.o: file_system.cpp file_system.h helper_functions.h
 	@printf "\033[32mBuilding: "
 	@printf $@
 	@printf "\033[0m\n"
