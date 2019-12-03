@@ -40,9 +40,11 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     /* SETUP NETWORK CHART */
 
     networkTransmitSeries = new QLineSeries;
+    networkTransmitSeries->setName("Transmit");
     networkReceiveSeries = new QLineSeries;
+    networkReceiveSeries->setName("Receive");
     networkChart = new QChart;
-    networkChart->legend()->hide();
+    networkChart->legend()->setVisible(true);
     networkChart->addSeries(networkReceiveSeries);
     networkChart->addSeries(networkTransmitSeries);
     networkChart->createDefaultAxes();
