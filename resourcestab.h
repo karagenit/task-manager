@@ -56,6 +56,7 @@ private:
     QLineSeries *networkReceiveSeries;
     long lastTransmitCount;
     long lastReceiveCount;
+    int maxNetworkValue;
 };
 
 #endif // RESOURCESTAB_H

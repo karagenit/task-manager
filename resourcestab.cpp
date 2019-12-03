@@ -47,7 +47,6 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     networkChart->addSeries(networkTransmitSeries);
     networkChart->createDefaultAxes();
     networkChart->axisX()->hide();
-    // TODO: big enough? autoscale?
     networkChart->axisY()->setRange(0, 100000);
     networkChart->setTitle("Network Usage");
     networkChartView = new QChartView(networkChart);
@@ -65,6 +64,7 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     lastUsedCount = 0;
     lastReceiveCount = 0;
     lastTransmitCount = 0;
+    maxNetworkValue = 100000;
 
     // We call these once so the various lastCounts
     // are set properly.
@@ -83,9 +83,14 @@ void ResourcesTab::updateGraphs() {
     memoryChart->axisX()->setRange(timeCount - MEM_GRAPH_RANGE, timeCount);
     memoryChartView->repaint();
 
-    networkTransmitSeries->append(timeCount, get_network_transmit());
-    networkReceiveSeries->append(timeCount, get_network_receive());
+    int transmit = get_network_transmit();
+    int receive = get_network_receive();
+    networkTransmitSeries->append(timeCount, transmit);
+    networkReceiveSeries->append(timeCount, receive);
+    maxNetworkValue = std::max(maxNetworkValue, transmit);
+    maxNetworkValue = std::max(maxNetworkValue, receive);
     networkChart->axisX()->setRange(timeCount - NET_GRAPH_RANGE, timeCount);
+    networkChart->axisY()->setRange(0, maxNetworkValue);
     networkChartView->repaint();
 
     timeCount++;
