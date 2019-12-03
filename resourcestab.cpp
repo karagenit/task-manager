@@ -25,9 +25,11 @@ ResourcesTab::ResourcesTab(QWidget *parent) : QWidget(parent)
     /* SETUP MEMORY CHART */
 
     memorySeries = new QLineSeries;
+    memorySeries->setName("RAM");
     swapSeries = new QLineSeries;
+    swapSeries->setName("Swap");
     memoryChart = new QChart;
-    memoryChart->legend()->hide();
+    memoryChart->legend()->setVisible(true);
     memoryChart->addSeries(memorySeries);
     memoryChart->addSeries(swapSeries);
     memoryChart->createDefaultAxes();
