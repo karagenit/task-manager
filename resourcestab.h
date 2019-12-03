@@ -21,6 +21,7 @@ public:
     explicit ResourcesTab(QWidget *parent = nullptr);
     double get_used_cpu();
     int get_used_memory();
+    int get_free_memory();
     int get_total_memory();
     int get_used_swap();
     int get_network_transmit();

@@ -108,11 +108,26 @@ double ResourcesTab::get_used_cpu() {
 }
 
 int ResourcesTab::get_used_memory() {
-    return stoi(popen_string("free -m | grep 'Mem:' | awk '{print $3}'"));
+    return get_total_memory() - get_free_memory();
+}
+
+int ResourcesTab::get_free_memory() {
+    std::ifstream meminfo("/proc/meminfo");
+    std::string key, units;
+    int value;
+    meminfo >> key >> value >> units;
+    meminfo >> key >> value >> units;
+    meminfo >> key >> value >> units;
+    return value;
 }
 
 int ResourcesTab::get_total_memory() {
-    return stoi(popen_string("free -m | grep 'Mem:' | awk '{print $2}'"));
+    std::ifstream meminfo("/proc/meminfo");
+    std::string key, units;
+    int value;
+    meminfo >> key >> value >> units;
+    qDebug() << value;
+    return value;
 }
 
 int ResourcesTab::get_used_swap() {
